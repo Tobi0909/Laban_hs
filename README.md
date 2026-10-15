@@ -32,6 +32,7 @@ Mở [http://localhost:3000](http://localhost:3000).
   vụ → Gương phản tư → Chọn đường học), tối đa 5 bài hoặc 15 phút.
 - `/styleguide` — soát đồ hoạ (chỉ hiện ở `NODE_ENV !== 'production'`).
 - `/dev/learn-preview` — soát 4 màn học bằng dữ liệu mẫu, không cần đăng nhập/DB (chỉ dev).
+- `/teacher/bank` — soạn/duyệt bài (dạng bài, gợi ý AI, xem trước như học sinh, sinh audio khi Duyệt).
 
 ## Biến môi trường
 
@@ -45,14 +46,18 @@ thiếu biến nào, app sẽ báo lỗi rõ ràng ngay khi khởi động thay 
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | OAuth Google cho đăng nhập giáo viên. |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Rate limit + khoá tạm sau 5 lần đoán sai. |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob (lưu ảnh/âm thanh bài tập). |
-| `ANTHROPIC_API_KEY` | AI Gateway — chỉ dùng ở trang giáo viên, route học sinh không bao giờ import. |
+| `AI_MODEL` | Model qua Vercel AI Gateway (vd `anthropic/claude-sonnet-4-5`) — chỉ dùng ở `/teacher/bank`. |
+| `AI_GATEWAY_API_KEY` | Key AI Gateway (tự có khi deploy trên Vercel; cần set thủ công khi chạy local). |
+| `ANTHROPIC_API_KEY` | Dự phòng nếu không qua Gateway. Route học sinh không bao giờ import AI. |
+| `TTS_PROVIDER` | `mock` (mặc định, sinh file câm để test kiến trúc) hoặc `http` (gọi 1 API TTS thật). |
+| `TTS_API_KEY` / `TTS_API_URL` | Bắt buộc khi `TTS_PROVIDER=http` — đổi nhà cung cấp TTS chỉ cần đổi 2 biến này. |
 
 ## Lệnh kiểm tra
 
 ```bash
 npm run lint        # ESLint
 npm run typecheck   # tsc --noEmit
-npm run test         # Vitest (unit test: calibrate(), không-import-AI ở route học sinh)
+npm run test         # Vitest (grade/calibration, checks.ts, schema AI, không-import-AI ở route học sinh...)
 npm run test:e2e    # Playwright (luồng đăng nhập học sinh, viewport tablet)
 npm run build        # Production build
 ```
@@ -85,6 +90,32 @@ npm run db:studio     # Mở Drizzle Studio
 - Mật khẩu hình/token QR không bao giờ lưu dạng chữ thường (plaintext) — chỉ lưu HMAC-SHA256
   (khoá = `AUTH_SECRET`), xem [`src/lib/auth/picture-secret.ts`](src/lib/auth/picture-secret.ts).
 
+## Soạn bài với AI (chỉ trang giáo viên)
+
+`/teacher/bank` — soạn bài theo từng dạng (pick_image/drag_drop/number/true_false/order_steps),
+xem trước đúng như học sinh sẽ thấy (khung tablet), rồi Duyệt.
+
+- **`POST /api/author/suggest`** — gọi `generateObject` (Vercel AI SDK) qua AI Gateway
+  (`src/lib/ai/suggest.ts`), model lấy từ `AI_MODEL`. 4 loại: `distractors` (3 đáp án nhiễu gắn
+  mistake_tag), `steps` (các bước cho StepCards + worked_example), `reflections` (bộ 3 câu phản tư
+  match/over/under), `simplify` (viết lại câu cho đúng khối lớp). System prompt
+  (`AUTHOR_SYSTEM_PROMPT`) bắt câu ngắn theo khối lớp, xưng "em", không khen/chê năng lực, câu
+  phản tư không lộ đáp án, không thương hiệu/nhân vật có bản quyền. **Prompt chỉ chứa nội dung bài
+  học** (đề/mô tả đáp án/chủ đề/khối lớp) — không bao giờ có dữ liệu học sinh. Mỗi lần gọi lưu vào
+  `ai_drafts`; rate limit 20 lần/10 phút/giáo viên (`src/lib/ai/rate-limit.ts`).
+- Gợi ý AI chỉ đổ vào state của form trên trình duyệt giáo viên; phải bấm "Lưu nháp" mới ghi vào DB
+  (status luôn là `draft`), và phải bấm **Duyệt** (`approveTask`/`approveReflectionTemplate`) thì
+  `status` mới thành `approved` — route học sinh (`GET /api/session-pack`, `submitAnswer`) chỉ đọc
+  `status='approved'`, nên **không có đường nào chữ AI sinh ra tới tay học sinh mà chưa qua Duyệt.**
+- **`lib/authoring/checks.ts`** — cảnh báo (không chặn cứng) trước khi Duyệt: câu quá dài so với
+  khối lớp (>12 từ lớp 1–2, >20 từ lớp 3–5), câu phản tư có số (dễ lộ đáp án), từ khen/chê năng lực.
+- **`POST /api/author/tts`** (và `/api/author/tts/upload`) — khi Duyệt, tự sinh MP3/WAV cho mọi câu
+  chữ của bài (đề, lựa chọn, ví dụ, câu phản tư) qua adapter `lib/tts/` (đổi nhà cung cấp bằng
+  `TTS_PROVIDER`/`TTS_API_KEY`/`TTS_API_URL`, không sửa code), lưu Vercel Blob, ghi URL vào DB. Giáo
+  viên nghe thử/tạo lại/tải file tự ghi âm thay thế từng câu ở khung "Audio" dưới form sửa bài.
+  `AudioButton` ưu tiên file đã sinh, chỉ dùng Web Speech khi thiếu file (adapter sẵn sàng đổi sang
+  MP3 thu sẵn mà không đổi component học sinh).
+
 ## Deploy Vercel
 
 1. Tạo project trên Vercel, liên kết repo này.
@@ -99,15 +130,20 @@ npm run db:studio     # Mở Drizzle Studio
    - `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`: tạo OAuth Client (loại Web application) trong
      [Google Cloud Console](https://console.cloud.google.com/apis/credentials), Authorized redirect
      URI = `https://<domain-vercel>/api/auth/callback/google`.
-6. Khai báo toàn bộ biến ở trên trong Project Settings → Environment Variables (Production +
+6. **AI Gateway**: Vercel → project Settings → AI → bật AI Gateway (tự cấp quyền qua OIDC khi chạy
+   trên Vercel, không cần `AI_GATEWAY_API_KEY`; chạy local thì tạo key trong Vercel dashboard →
+   AI Gateway → API Keys). Đặt `AI_MODEL` theo model muốn dùng.
+7. **TTS**: để `TTS_PROVIDER=mock` nếu chưa có nhà cung cấp TTS thật (sinh file câm, kiến trúc vẫn
+   chạy đúng); khi có nhà cung cấp thật, đặt `TTS_PROVIDER=http` + `TTS_API_URL`/`TTS_API_KEY`.
+8. Khai báo toàn bộ biến ở trên trong Project Settings → Environment Variables (Production +
    Preview).
-7. Sau lần deploy đầu tiên, chạy migration + seed nhắm vào DB production/preview:
+9. Sau lần deploy đầu tiên, chạy migration + seed nhắm vào DB production/preview:
    ```bash
    DATABASE_URL=<connection-string-production> npm run db:migrate
    DATABASE_URL=<connection-string-production> npm run db:seed   # chỉ khi muốn dữ liệu mẫu
    ```
-8. Deploy — Next.js App Router build tự động nhận diện; `/styleguide` tự ẩn (404) vì chạy ở
-   `NODE_ENV=production`.
+10. Deploy — Next.js App Router build tự động nhận diện; `/styleguide` và `/dev/learn-preview` tự
+    ẩn (404) vì chạy ở `NODE_ENV=production`.
 
 ## Quy tắc kỹ thuật quan trọng
 
@@ -142,12 +178,20 @@ npm run db:studio     # Mở Drizzle Studio
       `startAttempt`/`submitAnswer`/`submitReflection`/`chooseNextStep`; `lib/learning/grade.ts`
       (chấm theo dạng bài), `pick-reflection.ts`, `next-step.ts`; phiên tự kết thúc sau 5 bài hoặc
       15 phút → màn chúc mừng (Kim cheer + confetti ngắn, tôn trọng `prefers-reduced-motion`).
-- [ ] Giai đoạn 3 — Trang giáo viên nâng cao: soạn/duyệt bài, AI draft, xem xu hướng lớp.
+- [x] Giai đoạn 3 — Soạn bài với AI (chỉ trang giáo viên):
+      `/teacher/bank` (danh sách chủ đề/bài, form soạn theo dạng + xem trước khung tablet, trạng
+      thái Nháp/Đã duyệt, nút Duyệt), `/teacher/bank/reflections` (soạn/duyệt câu phản tư);
+      `POST /api/author/suggest` (4 loại gợi ý qua AI Gateway, lưu `ai_drafts`, rate limit theo
+      giáo viên); `lib/authoring/checks.ts` (cảnh báo trước Duyệt); `POST /api/author/tts` +
+      `/upload` (sinh/nghe thử/tạo lại/tải lên audio khi Duyệt, adapter đổi nhà cung cấp qua env);
+      `AudioButton` ưu tiên MP3 đã sinh, dự phòng Web Speech.
 
-**Lưu ý môi trường**: Bộ khung đã qua `lint`/`typecheck`/`test`/`build` sạch. Đã kiểm tra trực quan
-`/styleguide` và cả 4 màn học (`/dev/learn-preview`, chỉ dev, dùng dữ liệu mẫu — không qua DB) ở
-1024×768 và 768×1024. Các luồng cần kết nối Neon/Upstash/Google OAuth thật (migrate, seed, đăng
-nhập Google, Playwright e2e `test:e2e` cho cả luồng đăng nhập và luồng học trọn phiên) chưa chạy
-được trong môi trường phát triển hiện tại vì chưa có thông tin đăng nhập dịch vụ thật — hãy điền
-`.env.local` theo bảng biến môi trường ở trên rồi chạy lại các lệnh trong mục "Chạy local" để xác
-minh đầy đủ.
+**Lưu ý môi trường**: Bộ khung đã qua `lint`/`typecheck`/`test` (80 test)/`build` sạch. Đã kiểm tra
+trực quan `/styleguide` và cả 4 màn học (`/dev/learn-preview`, chỉ dev, dùng dữ liệu mẫu — không
+qua DB) ở 1024×768 và 768×1024, bao gồm nút loa trên từng lựa chọn/thẻ bước sau khi nối audioUrl.
+Các luồng cần kết nối Neon/Upstash/Google OAuth/AI Gateway thật (migrate, seed, đăng nhập Google,
+soạn bài thật với AI/TTS, Playwright e2e `test:e2e`) chưa chạy được trong môi trường phát triển
+hiện tại vì chưa có thông tin đăng nhập dịch vụ thật — hãy điền `.env.local` theo bảng biến môi
+trường ở trên (để `TTS_PROVIDER=mock` nếu chưa có nhà cung cấp TTS) rồi chạy lại các lệnh trong mục
+"Chạy local" để xác minh đầy đủ, gồm cả tiêu chí "soạn 1 bài mới tới lúc học sinh dùng được trong
+< 5 phút".

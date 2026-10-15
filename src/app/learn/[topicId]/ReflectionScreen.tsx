@@ -57,15 +57,22 @@ export function ReflectionScreen({
           </div>
           <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
             {reflectionTemplate.choices.map((choice) => (
-              <button
-                key={choice.id}
-                type="button"
-                disabled={submittingReflection}
-                onClick={() => onChoose(choice.id)}
-                className="rounded-[20px] border-b-[6px] border-border bg-paper px-4 py-3 font-nunito text-base transition-transform active:translate-y-1 active:border-b-[2px] disabled:opacity-60"
-              >
-                {choice.label}
-              </button>
+              <div key={choice.id} className="relative">
+                <button
+                  type="button"
+                  disabled={submittingReflection}
+                  onClick={() => onChoose(choice.id)}
+                  className="w-full rounded-[20px] border-b-[6px] border-border bg-paper py-3 pl-4 pr-10 text-left font-nunito text-base transition-transform active:translate-y-1 active:border-b-[2px] disabled:opacity-60"
+                >
+                  {choice.label}
+                </button>
+                <AudioButton
+                  text={choice.label}
+                  audioUrl={choice.audioUrl}
+                  size="sm"
+                  className="absolute -right-2 -top-2"
+                />
+              </div>
             ))}
           </div>
         </Card>

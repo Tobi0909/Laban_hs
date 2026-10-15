@@ -19,27 +19,46 @@ const SCREEN_LABELS: Record<Screen, string> = {
   celebration: "Màn chúc mừng",
 };
 
-const SAMPLE_TASK: PublicTask = {
-  id: "preview-task",
-  type: "drag_drop",
-  difficulty: 2,
-  prompt: "Kéo thẻ số vào đúng hàng Chục và hàng Đơn vị của số 58",
-  promptAudioUrl: null,
-  content: {
+const SAMPLE_TASKS: Record<string, PublicTask> = {
+  drag_drop: {
+    id: "preview-task-drag",
     type: "drag_drop",
-    items: [
-      { id: "chip5", label: "5" },
-      { id: "chip8", label: "8" },
-    ],
-    targets: [
-      { id: "box_chuc", label: "Hàng chục" },
-      { id: "box_donvi", label: "Hàng đơn vị" },
-    ],
+    difficulty: 2,
+    prompt: "Kéo thẻ số vào đúng hàng Chục và hàng Đơn vị của số 58",
+    promptAudioUrl: null,
+    content: {
+      type: "drag_drop",
+      items: [
+        { id: "chip5", label: "5" },
+        { id: "chip8", label: "8" },
+      ],
+      targets: [
+        { id: "box_chuc", label: "Hàng chục" },
+        { id: "box_donvi", label: "Hàng đơn vị" },
+      ],
+    },
+  },
+  pick_image: {
+    id: "preview-task-pick",
+    type: "pick_image",
+    difficulty: 1,
+    prompt: "Chọn kết quả đúng của 9 cộng 4",
+    promptAudioUrl: null,
+    content: {
+      type: "pick_image",
+      options: [
+        { id: "opt12", iconId: "star", label: "12" },
+        { id: "opt13", iconId: "star", label: "13" },
+        { id: "opt14", iconId: "star", label: "14" },
+        { id: "opt15", iconId: "star", label: "15" },
+      ],
+    },
   },
 };
 
 export function LearnPreview() {
   const [screen, setScreen] = useState<Screen>("confidence");
+  const [taskKind, setTaskKind] = useState<keyof typeof SAMPLE_TASKS>("pick_image");
 
   return (
     <div className="flex w-full flex-col items-center gap-8">
@@ -58,12 +77,29 @@ export function LearnPreview() {
         ))}
       </nav>
 
+      {screen === "task" && (
+        <nav className="flex gap-2 print:hidden">
+          {Object.keys(SAMPLE_TASKS).map((k) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setTaskKind(k as keyof typeof SAMPLE_TASKS)}
+              className={`rounded border border-border px-2 py-1 text-xs ${
+                taskKind === k ? "bg-sun/30" : "bg-card"
+              }`}
+            >
+              {k}
+            </button>
+          ))}
+        </nav>
+      )}
+
       {screen === "confidence" && (
         <ConfidenceScreen prompt="27 cộng 6 bằng mấy?" onSubmit={() => {}} />
       )}
 
       {screen === "task" && (
-        <TaskScreen task={SAMPLE_TASK} stepTotal={5} stepCurrent={1} submitting={false} onAnswer={() => {}} />
+        <TaskScreen task={SAMPLE_TASKS[taskKind]} stepTotal={5} stepCurrent={1} submitting={false} onAnswer={() => {}} />
       )}
 
       {screen === "reflection" && (

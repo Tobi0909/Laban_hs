@@ -49,7 +49,7 @@ export function NextStepScreen({
                   <Icon />
                 </div>
                 <p className="flex-1 font-nunito text-lg">{step.text}</p>
-                <AudioButton text={step.text} size="sm" />
+                <AudioButton text={step.text} audioUrl={step.audioUrl} size="sm" />
               </div>
             );
           })}
