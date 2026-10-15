@@ -27,8 +27,11 @@ npm run dev
 Mở [http://localhost:3000](http://localhost:3000).
 
 - Trang giáo viên: `/teacher/login` → đăng nhập Google → mở phiên lớp.
-- Trang học sinh: `/c/2A2026` (mã lớp seed sẵn) — chỉ vào được khi phiên lớp đang mở.
+- Trang học sinh: `/c/2A2026` (mã lớp seed sẵn) — chỉ vào được khi phiên lớp đang mở. Sau khi vào
+  lớp, bấm "Bắt đầu học" để làm chủ đề "Phép cộng có nhớ trong phạm vi 100" (4 màn: La bàn → Nhiệm
+  vụ → Gương phản tư → Chọn đường học), tối đa 5 bài hoặc 15 phút.
 - `/styleguide` — soát đồ hoạ (chỉ hiện ở `NODE_ENV !== 'production'`).
+- `/dev/learn-preview` — soát 4 màn học bằng dữ liệu mẫu, không cần đăng nhập/DB (chỉ dev).
 
 ## Biến môi trường
 
@@ -130,11 +133,21 @@ npm run db:studio     # Mở Drizzle Studio
       thái); `/styleguide`; Auth.js (Google giáo viên, Credentials học sinh qua vé đăng nhập);
       `/c/[joinCode]` (avatar + 2 hình bí mật hoặc QR), khoá tạm sau 5 lần sai; trang giáo viên
       (tạo lớp, thêm học sinh, mở/đóng phiên, in thẻ QR A4); middleware chặn `/teacher/*` + CSP.
-- [ ] Giai đoạn 2 — 5 màn hình học sinh (La bàn, Nhiệm vụ, Gương phản tư, Chọn đường học, Nhật ký).
+- [x] Giai đoạn 2 — Vòng học 4 màn (không dùng AI):
+      chủ đề mẫu "Phép cộng có nhớ trong phạm vi 100" (9 bài, đủ 5 dạng: pick_image, drag_drop,
+      number, true_false, order_steps — mỗi bài có worked_example/explanation + đáp án nhiễu gắn
+      mistake_tag) và 9 reflection_templates đã duyệt; `GET /api/session-pack/[topicId]` (không
+      kèm answer_key); `/learn/[topicId]` (4 màn: La bàn → Nhiệm vụ → Gương phản tư → Chọn đường
+      học) dùng `CardChoice`/`DragBoard`/`NumberPad`/`TrueFalseChoice`/`StepCards`; Server Actions
+      `startAttempt`/`submitAnswer`/`submitReflection`/`chooseNextStep`; `lib/learning/grade.ts`
+      (chấm theo dạng bài), `pick-reflection.ts`, `next-step.ts`; phiên tự kết thúc sau 5 bài hoặc
+      15 phút → màn chúc mừng (Kim cheer + confetti ngắn, tôn trọng `prefers-reduced-motion`).
 - [ ] Giai đoạn 3 — Trang giáo viên nâng cao: soạn/duyệt bài, AI draft, xem xu hướng lớp.
 
-**Lưu ý môi trường**: Bộ khung đã qua `lint`/`typecheck`/`test`/`build` sạch và kiểm tra trực quan
-`/styleguide` bằng trình duyệt. Các luồng cần kết nối Neon/Upstash/Google OAuth thật (migrate, seed,
-đăng nhập Google, Playwright e2e) chưa chạy được trong môi trường phát triển hiện tại vì chưa có
-thông tin đăng nhập dịch vụ thật — hãy điền `.env.local` theo bảng biến môi trường ở trên rồi chạy
-lại các lệnh trong mục "Chạy local" để xác minh đầy đủ.
+**Lưu ý môi trường**: Bộ khung đã qua `lint`/`typecheck`/`test`/`build` sạch. Đã kiểm tra trực quan
+`/styleguide` và cả 4 màn học (`/dev/learn-preview`, chỉ dev, dùng dữ liệu mẫu — không qua DB) ở
+1024×768 và 768×1024. Các luồng cần kết nối Neon/Upstash/Google OAuth thật (migrate, seed, đăng
+nhập Google, Playwright e2e `test:e2e` cho cả luồng đăng nhập và luồng học trọn phiên) chưa chạy
+được trong môi trường phát triển hiện tại vì chưa có thông tin đăng nhập dịch vụ thật — hãy điền
+`.env.local` theo bảng biến môi trường ở trên rồi chạy lại các lệnh trong mục "Chạy local" để xác
+minh đầy đủ.

@@ -1,9 +1,10 @@
 import "dotenv/config";
 import { eq } from "drizzle-orm";
 import { db } from "./index";
-import { classes, students, teachers } from "./schema";
+import { classes, reflectionTemplates, students, tasks, teachers, topics } from "./schema";
 import { hashPictureSecret, hashQrToken, generateQrToken } from "@/lib/auth/picture-secret";
 import { AVATAR_IDS, ICON_IDS, type IconId } from "@/components/kid/icons";
+import { SEED_REFLECTION_TEMPLATES, SEED_TASKS, TOPIC_TITLE } from "./seed-content/math-grade2-addition";
 
 const STUDENT_NAMES = ["Bin", "Nấm", "Tũn", "Xíu", "Bo", "Mít"];
 
@@ -51,6 +52,42 @@ async function seed() {
 
     console.log(`✓ Học sinh "${displayName}" (avatar: ${avatarId}, mật khẩu hình: ${pick1} + ${pick2})`);
   }
+
+  const [topic] = await db
+    .insert(topics)
+    .values({ classId: klass.id, title: TOPIC_TITLE, order: 0 })
+    .returning();
+  console.log(`✓ Chủ đề: "${topic.title}"`);
+
+  for (const t of SEED_TASKS) {
+    await db.insert(tasks).values({
+      topicId: topic.id,
+      difficulty: t.difficulty,
+      type: t.type,
+      prompt: t.prompt,
+      options: t.content,
+      answerKey: t.answerKey,
+      workedExample: t.workedExample,
+      explanation: t.explanation,
+      status: "approved",
+      approvedBy: teacher.id,
+      approvedAt: new Date(),
+    });
+  }
+  console.log(`✓ ${SEED_TASKS.length} bài tập (${[...new Set(SEED_TASKS.map((t) => t.type))].join(", ")})`);
+
+  for (const rt of SEED_REFLECTION_TEMPLATES) {
+    await db.insert(reflectionTemplates).values({
+      calibration: rt.calibration,
+      mistakeTag: rt.mistakeTag,
+      question: rt.question,
+      choices: rt.choices,
+      status: "approved",
+      approvedBy: teacher.id,
+      approvedAt: new Date(),
+    });
+  }
+  console.log(`✓ ${SEED_REFLECTION_TEMPLATES.length} mẫu câu phản tư`);
 
   console.log("\nHoàn tất. Vào lớp tại /c/2A2026 (cần mở phiên lớp trong trang giáo viên trước).");
   console.log("12 hình cho lưới mật khẩu:", ICON_IDS.join(", "));

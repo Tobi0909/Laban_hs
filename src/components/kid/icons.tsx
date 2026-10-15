@@ -160,6 +160,79 @@ export const Drop = (p: IconProps) =>
     p,
   );
 
+export const MagnifyingGlass = (p: IconProps) =>
+  base(
+    <>
+      <circle cx="28" cy="28" r="16" fill="none" stroke="#A78BFA" strokeWidth="6" />
+      <line x1="39" y1="39" x2="54" y2="54" stroke="#A78BFA" strokeWidth="6" strokeLinecap="round" />
+    </>,
+    p,
+  );
+
+export const Sparkle = (p: IconProps) =>
+  base(
+    <path
+      d="M32 6 L37 27 L58 32 L37 37 L32 58 L27 37 L6 32 L27 27 Z"
+      fill="#FFC93C"
+    />,
+    p,
+  );
+
+export const RefreshLoop = (p: IconProps) =>
+  base(
+    <>
+      <path
+        d="M14 32a18 18 0 0 1 30-13"
+        fill="none"
+        stroke="#4FB3E8"
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      <path d="M44 14 L44 24 L34 24 Z" fill="#4FB3E8" />
+      <path
+        d="M50 32a18 18 0 0 1-30 13"
+        fill="none"
+        stroke="#4FB3E8"
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      <path d="M20 50 L20 40 L30 40 Z" fill="#4FB3E8" />
+      <circle cx="32" cy="32" r="3" fill="#FFC93C" />
+    </>,
+    p,
+  );
+
+export const OpenBook = (p: IconProps) =>
+  base(
+    <>
+      <path d="M32 16c-6-4-16-4-22 0v30c6-4 16-4 22 0Z" fill="#FF8A65" />
+      <path d="M32 16c6-4 16-4 22 0v30c-6-4-16-4-22 0Z" fill="#FFC93C" />
+      <line x1="32" y1="16" x2="32" y2="46" stroke="#2B2A33" strokeWidth="2" />
+    </>,
+    p,
+  );
+
+export const LightBulb = (p: IconProps) =>
+  base(
+    <>
+      <circle cx="32" cy="26" r="16" fill="#FFC93C" />
+      <rect x="25" y="40" width="14" height="8" rx="2" fill="#E9DCC6" />
+      <line x1="27" y1="50" x2="37" y2="50" stroke="#2B2A33" strokeWidth="2" strokeLinecap="round" />
+    </>,
+    p,
+  );
+
+export const Mountain = (p: IconProps) =>
+  base(
+    <>
+      <path d="M6 50 L24 20 L34 36 L42 26 L58 50 Z" fill="#5CC98A" />
+      <path d="M42 26 L34 36 L38 42 L46 38 Z" fill="#3C9A66" />
+      <path d="M42 18 L42 28 L50 22 Z" fill="#FF8A65" />
+      <line x1="42" y1="14" x2="42" y2="26" stroke="#2B2A33" strokeWidth="2" />
+    </>,
+    p,
+  );
+
 export const ICON_IDS = [
   "sun",
   "star",
