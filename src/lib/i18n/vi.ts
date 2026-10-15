@@ -32,4 +32,26 @@ export const vi = {
   journey: {
     title: "Nhật ký hành trình",
   },
+  classEntry: {
+    chooseYou: "Em là ai nào?",
+    choosePictures: "Chạm đúng 2 hình bí mật của em nhé",
+    switchFriend: "Đổi bạn",
+    sessionClosed: "Lớp mình chưa mở, chờ cô/thầy nhé!",
+    locked: "Em đoán sai nhiều lần rồi, đợi một chút rồi thử lại nhé.",
+    wrong: "Chưa đúng rồi, mình thử lại nhé.",
+    tryAgain: "Thử lại",
+    entering: "Kim đang mở cửa cho em...",
+    welcome: "Chào mừng em đến với lớp học!",
+  },
+  teacher: {
+    loginWithGoogle: "Đăng nhập bằng Google",
+    openSession: "Mở phiên lớp",
+    closeSession: "Đóng phiên lớp",
+    sessionOpenLabel: "Phiên đang mở",
+    sessionClosedLabel: "Phiên đang đóng",
+    newClass: "Tạo lớp mới",
+    addStudent: "Thêm học sinh",
+    printCards: "In thẻ QR",
+    guardianConsentRequired: "Bắt buộc nhập ngày nhận phiếu đồng ý phụ huynh",
+  },
 } as const;

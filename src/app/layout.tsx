@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Baloo_2, Nunito } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
 
 const baloo2 = Baloo_2({
   variable: "--font-baloo-2",
@@ -26,7 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${baloo2.variable} ${nunito.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[var(--color-paper)] text-[var(--color-ink)] font-nunito">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
