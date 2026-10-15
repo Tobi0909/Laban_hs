@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# La bàn tự tin
 
-## Getting Started
+Web giúp học sinh tiểu học (lớp 1–5) tập tự đánh giá việc học: dự đoán mức tự tin, làm bài để có
+bằng chứng, so sánh dự đoán với kết quả, rồi tự chọn bước học tiếp. Không xếp hạng, không áp lực.
 
-First, run the development server:
+## Stack
+
+- Next.js (App Router) + TypeScript strict, deploy trên Vercel.
+- Tailwind CSS, Framer Motion, dnd-kit, lucide-react (trang giáo viên).
+- Postgres serverless Neon + Drizzle ORM.
+- Auth.js (Google cho giáo viên; Credentials tự viết cho học sinh).
+- Upstash Redis (rate limit), Vercel Blob (ảnh/MP3), Vercel AI SDK (chỉ trang giáo viên).
+- Serwist (PWA) + IndexedDB cho mạng yếu.
+- Zod, Vitest, Playwright.
+
+## Chạy local
 
 ```bash
+npm install
+cp .env.example .env.local   # điền các biến bên dưới
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Mở [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Biến môi trường
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Xem [`.env.example`](.env.example). Được validate qua Zod tại [`src/lib/env.ts`](src/lib/env.ts).
 
-## Learn More
+| Biến | Mô tả |
+| --- | --- |
+| `DATABASE_URL` | Connection string Postgres (Neon). |
+| `AUTH_SECRET` | Secret cho Auth.js. |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | OAuth Google cho đăng nhập giáo viên. |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Rate limiting. |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob (lưu ảnh/âm thanh). |
+| `ANTHROPIC_API_KEY` | AI Gateway — chỉ dùng ở trang giáo viên, route học sinh không bao giờ import. |
 
-To learn more about Next.js, take a look at the following resources:
+## Lệnh kiểm tra
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run lint        # ESLint
+npm run typecheck   # tsc --noEmit
+npm run test         # Vitest (unit test, vd. lib/learning/grade.ts)
+npm run test:e2e    # Playwright (luồng chính, viewport tablet)
+npm run build        # Production build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Database (Drizzle)
 
-## Deploy on Vercel
+Schema đặt tại [`src/lib/db/schema.ts`](src/lib/db/schema.ts) (sẽ hiện thực theo `<data_model>` ở
+giai đoạn kế tiếp).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run db:generate   # Sinh migration từ schema
+npm run db:migrate    # Áp migration vào DATABASE_URL
+npm run db:studio     # Mở Drizzle Studio
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy Vercel
+
+1. Tạo project trên Vercel, liên kết repo này.
+2. Thêm Neon Postgres, Upstash Redis, Vercel Blob qua Vercel Marketplace/Storage.
+3. Khai báo đủ biến môi trường ở trên trong Project Settings.
+4. Deploy — Next.js App Router build tự động nhận diện.
+
+## Quy tắc kỹ thuật quan trọng
+
+- Chấm bài bằng code thuần (`lib/learning/grade.ts`), AI không bao giờ chấm bài.
+- `answer_key` không gửi xuống client trước khi nộp bài; nội dung `status='draft'` không trả cho
+  route học sinh.
+- Route học sinh không import module AI; Server Action luôn xác thực qua session, không nhận
+  user id từ client.
+- Toàn bộ chuỗi giao diện tiếng Việt gom tại `src/lib/i18n/vi.ts`.
+
+## Trạng thái hiện tại
+
+- [x] Giai đoạn 0 — Khởi tạo: Next.js + TS + Tailwind, font Baloo 2/Nunito (subset vietnamese),
+      bảng màu theo `<visual_design>`, `lib/env.ts`, `lib/i18n/vi.ts`, hàm `calibrate()` +
+      unit test, cấu hình Vitest/Playwright/Drizzle.
+- [ ] Giai đoạn 1 — Data model: schema Drizzle đầy đủ + migrations.
+- [ ] Giai đoạn 2 — Auth: giáo viên (Google) và học sinh (Credentials).
+- [ ] Giai đoạn 3 — 5 màn hình học sinh + linh vật `<Kim/>`.
+- [ ] Giai đoạn 4 — Trang giáo viên (soạn/duyệt bài, AI draft, xem xu hướng lớp).

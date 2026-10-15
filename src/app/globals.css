@@ -1,26 +1,56 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Nền & thẻ */
+  --color-paper: #fff8ec;
+  --color-card: #ffffff;
+  --color-border: #e9dcc6;
+
+  /* Bầu trời (chính) */
+  --color-sky: #4fb3e8;
+  --color-sky-deep: #1f7fb8;
+
+  /* Màu nhấn */
+  --color-sun: #ffc93c;
+  --color-leaf: #5cc98a;
+  --color-coral: #ff8a65;
+  --color-lavender: #a78bfa;
+
+  /* Chữ */
+  --color-ink: #2b2a33;
+
+  --font-baloo-2: "Baloo 2";
+  --font-nunito: "Nunito";
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--color-paper);
+  --color-card: var(--color-card);
+  --color-border: var(--color-border);
+  --color-sky: var(--color-sky);
+  --color-sky-deep: var(--color-sky-deep);
+  --color-sun: var(--color-sun);
+  --color-leaf: var(--color-leaf);
+  --color-coral: var(--color-coral);
+  --color-lavender: var(--color-lavender);
+  --color-ink: var(--color-ink);
+
+  --font-baloo: var(--font-baloo-2);
+  --font-nunito: var(--font-nunito);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
 }
