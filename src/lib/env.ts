@@ -21,4 +21,14 @@ const envSchema = z.object({
   RETENTION_DAYS: z.coerce.number().int().positive().default(180),
 });
 
-export const env = envSchema.parse(process.env);
+// Next.js imports route modules during "Collecting page data" at build time
+// just to inspect their config, without ever invoking them. That import can
+// reach this module before real secrets are available in the build
+// environment (e.g. Netlify's production build step). Skip strict
+// validation in that phase so the build doesn't fail for unused routes;
+// real requests still go through full validation at runtime.
+const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
+
+export const env = isBuildPhase
+  ? (process.env as unknown as z.infer<typeof envSchema>)
+  : envSchema.parse(process.env);
