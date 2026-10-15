@@ -49,12 +49,20 @@ export function CelebrationScreen() {
         <AudioButton text={vi.learn.celebrateTitle} />
       </div>
       <p className="font-nunito text-xl">{vi.learn.celebrateBody}</p>
-      <Link
-        href="/s"
-        className="rounded-[20px] border-b-[6px] border-sky-deep bg-sky px-6 py-3 font-baloo text-lg font-semibold text-white transition-transform active:translate-y-1 active:border-b-[2px]"
-      >
-        {vi.learn.backToClass}
-      </Link>
+      <div className="flex gap-3">
+        <Link
+          href="/journal"
+          className="rounded-[20px] border-b-[6px] border-[#7C5FE0] bg-lavender px-6 py-3 font-baloo text-lg font-semibold text-ink transition-transform active:translate-y-1 active:border-b-[2px]"
+        >
+          {vi.journey.title}
+        </Link>
+        <Link
+          href="/s"
+          className="rounded-[20px] border-b-[6px] border-sky-deep bg-sky px-6 py-3 font-baloo text-lg font-semibold text-ink transition-transform active:translate-y-1 active:border-b-[2px]"
+        >
+          {vi.learn.backToClass}
+        </Link>
+      </div>
     </div>
   );
 }

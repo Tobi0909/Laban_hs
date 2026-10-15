@@ -47,7 +47,7 @@ export function StepCards({ steps, onSubmit, disabled }: StepCardsProps) {
               >
                 <span
                   className={clsx(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-baloo font-bold text-white",
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-baloo font-bold",
                     picked ? "bg-sun text-ink" : "bg-border text-ink/50",
                   )}
                 >

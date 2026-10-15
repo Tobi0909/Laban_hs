@@ -131,3 +131,20 @@ export async function closeClassSession(classId: string) {
   revalidatePath("/teacher");
   revalidatePath(`/teacher/classes/${classId}`);
 }
+
+/**
+ * Xoá toàn bộ dữ liệu của 1 học sinh (khi phụ huynh rút đồng ý). Xoá bản
+ * ghi `students` sẽ cascade xoá luôn sessions/attempts/reflections/
+ * next_steps liên quan (xem schema) — không để sót dữ liệu mồ côi.
+ */
+export async function deleteStudentData(classId: string, studentId: string) {
+  await requireTeacher(classId);
+
+  const student = await db.query.students.findFirst({ where: eq(students.id, studentId) });
+  if (!student || student.classId !== classId) {
+    throw new Error("Không tìm thấy học sinh trong lớp này.");
+  }
+
+  await db.delete(students).where(eq(students.id, studentId));
+  revalidatePath(`/teacher/classes/${classId}`);
+}

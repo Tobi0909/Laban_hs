@@ -31,6 +31,14 @@ export const vi = {
   },
   journey: {
     title: "Nhật ký hành trình",
+    empty: "Em chưa có viên đá nào — đi học để bắt đầu hành trình nhé!",
+    guessPrefix: "Em đã đoán:",
+    resultPrefix: "Kết quả:",
+    resultCorrect: "em làm đúng",
+    resultWrong: "em chưa làm đúng",
+    choicePrefix: "Em chọn:",
+    close: "Đóng",
+    backToClass: "Về lớp học",
   },
   classEntry: {
     chooseYou: "Em là ai nào?",
@@ -61,6 +69,12 @@ export const vi = {
     celebrateTitle: "Em học giỏi quá!",
     celebrateBody: "Kim rất vui vì em đã cố gắng hết mình hôm nay.",
     backToClass: "Về lớp học",
+  },
+  offline: {
+    savingLocally: "Đang lưu tạm — sẽ gửi khi có mạng",
+    waitingTitle: "Kim đang giữ bài của em",
+    waitingBody: "Mạng hơi yếu một chút, Kim sẽ gửi bài ngay khi có mạng lại nhé.",
+    retry: "Thử lại ngay",
   },
   teacher: {
     loginWithGoogle: "Đăng nhập bằng Google",

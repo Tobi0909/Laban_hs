@@ -7,6 +7,7 @@ import { requireTeacher } from "@/lib/auth/guards";
 import { isClassSessionOpen } from "@/lib/auth/class-session";
 import { SessionToggle } from "../../SessionToggle";
 import { AddStudentForm } from "./AddStudentForm";
+import { DeleteStudentButton } from "./DeleteStudentButton";
 import { AVATARS } from "@/components/kid/icons";
 
 export default async function ClassManagePage({
@@ -43,6 +44,12 @@ export default async function ClassManagePage({
           >
             In thẻ QR
           </Link>
+          <a
+            href={`/api/teacher/export?classId=${classId}`}
+            className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-paper"
+          >
+            Xuất CSV
+          </a>
         </div>
       </div>
 
@@ -54,7 +61,8 @@ export default async function ClassManagePage({
             return (
               <li key={s.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
                 <div className="h-10 w-10">{Avatar ? <Avatar /> : null}</div>
-                <span className="font-medium">{s.displayName}</span>
+                <span className="flex-1 font-medium">{s.displayName}</span>
+                <DeleteStudentButton classId={classId} studentId={s.id} displayName={s.displayName} />
               </li>
             );
           })}

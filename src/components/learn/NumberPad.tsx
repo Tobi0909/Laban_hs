@@ -38,7 +38,7 @@ export function NumberPad({ maxDigits, onSubmit, disabled }: NumberPadProps) {
             type="button"
             disabled={disabled}
             onClick={() => pressDigit(d)}
-            className="flex h-16 w-16 items-center justify-center rounded-[20px] border-b-[6px] border-sky-deep bg-sky font-baloo text-2xl font-bold text-white transition-transform active:translate-y-1 active:border-b-[2px] disabled:opacity-60"
+            className="flex h-16 w-16 items-center justify-center rounded-[20px] border-b-[6px] border-sky-deep bg-sky font-baloo text-2xl font-bold text-ink transition-transform active:translate-y-1 active:border-b-[2px] disabled:opacity-60"
           >
             {d}
           </button>
@@ -47,7 +47,7 @@ export function NumberPad({ maxDigits, onSubmit, disabled }: NumberPadProps) {
           type="button"
           disabled={disabled}
           onClick={clear}
-          className="flex h-16 w-16 items-center justify-center rounded-[20px] border-b-[6px] border-[#E06B46] bg-coral font-nunito text-sm font-bold text-white transition-transform active:translate-y-1 active:border-b-[2px] disabled:opacity-60"
+          className="flex h-16 w-16 items-center justify-center rounded-[20px] border-b-[6px] border-[#E06B46] bg-coral font-nunito text-sm font-bold text-ink transition-transform active:translate-y-1 active:border-b-[2px] disabled:opacity-60"
         >
           {vi.learn.numberPadClear}
         </button>
@@ -55,7 +55,7 @@ export function NumberPad({ maxDigits, onSubmit, disabled }: NumberPadProps) {
           type="button"
           disabled={disabled}
           onClick={() => pressDigit("0")}
-          className="flex h-16 w-16 items-center justify-center rounded-[20px] border-b-[6px] border-sky-deep bg-sky font-baloo text-2xl font-bold text-white transition-transform active:translate-y-1 active:border-b-[2px] disabled:opacity-60"
+          className="flex h-16 w-16 items-center justify-center rounded-[20px] border-b-[6px] border-sky-deep bg-sky font-baloo text-2xl font-bold text-ink transition-transform active:translate-y-1 active:border-b-[2px] disabled:opacity-60"
         >
           0
         </button>
@@ -64,7 +64,7 @@ export function NumberPad({ maxDigits, onSubmit, disabled }: NumberPadProps) {
           disabled={disabled || digits.length === 0}
           onClick={submit}
           className={clsx(
-            "flex h-16 w-16 items-center justify-center rounded-[20px] border-b-[6px] border-[#3C9A66] bg-leaf font-nunito text-sm font-bold text-white transition-transform active:translate-y-1 active:border-b-[2px]",
+            "flex h-16 w-16 items-center justify-center rounded-[20px] border-b-[6px] border-[#3C9A66] bg-leaf font-nunito text-sm font-bold text-ink transition-transform active:translate-y-1 active:border-b-[2px]",
             digits.length === 0 && "opacity-60",
           )}
         >

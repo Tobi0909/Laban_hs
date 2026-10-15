@@ -8,7 +8,7 @@
 
   /* Bầu trời (chính) */
   --color-sky: #4fb3e8;
-  --color-sky-deep: #1f7fb8;
+  --color-sky-deep: #1c76ac; /* đậm hơn #1F7FB8 một chút để chữ trắng đạt tỉ lệ tương phản AA (4.5:1) */
 
   /* Màu nhấn */
   --color-sun: #ffc93c;

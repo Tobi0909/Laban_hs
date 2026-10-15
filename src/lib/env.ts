@@ -16,6 +16,9 @@ const envSchema = z.object({
   TTS_PROVIDER: z.enum(["mock", "http"]).default("mock"),
   TTS_API_KEY: z.string().min(1).optional(),
   TTS_API_URL: z.string().url().optional(),
+  // Dọn dữ liệu quá hạn lưu trữ (xem vercel.json + /api/cron/cleanup)
+  CRON_SECRET: z.string().min(1),
+  RETENTION_DAYS: z.coerce.number().int().positive().default(180),
 });
 
 export const env = envSchema.parse(process.env);

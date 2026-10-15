@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Kim } from "@/components/kid/Kim";
 import { Card } from "@/components/kid/Card";
+import { AudioButton } from "@/components/kid/AudioButton";
+import { Cloud } from "@/components/kid/icons";
 import type { Confidence } from "@/lib/learning/grade";
 import type { AnswerValue } from "@/lib/learning/types";
 import type { PublicTask } from "@/lib/learning/public-task";
+import { enqueuePendingAttempt } from "@/lib/offline/queue";
+import { trySyncQueue } from "@/lib/offline/sync-manager";
 import { vi } from "@/lib/i18n/vi";
 import { ConfidenceScreen } from "./ConfidenceScreen";
 import { TaskScreen } from "./TaskScreen";
@@ -16,8 +20,9 @@ import { startAttempt, submitAnswer, submitReflection, chooseNextStep, endSessio
 
 const MAX_TASKS = 5;
 const MAX_SESSION_MS = 15 * 60 * 1000;
+const SYNC_POLL_MS = 3000;
 
-type Phase = "confidence" | "task" | "reflection" | "nextstep";
+type Phase = "confidence" | "task" | "offline" | "reflection" | "nextstep";
 type Status = "loading" | "closed" | "ready" | "finished";
 
 interface SessionPackResponse {
@@ -39,6 +44,13 @@ export function LearnFlow({ topicId }: { topicId: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [submittingReflection, setSubmittingReflection] = useState(false);
   const [result, setResult] = useState<SubmitAnswerResult | null>(null);
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (pollTimer.current) clearTimeout(pollTimer.current);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,17 +87,39 @@ export function LearnFlow({ topicId }: { topicId: string }) {
     if (!sessionId || !currentTask || confidence === null) return;
     setSubmitting(true);
     const clientId = crypto.randomUUID();
-    const res = await submitAnswer({
-      sessionId,
-      taskId: currentTask.id,
-      confidence,
-      reasonCard,
-      answer,
-      clientId,
-    });
-    setResult(res);
-    setSubmitting(false);
-    setPhase("reflection");
+    const input = { sessionId, taskId: currentTask.id, confidence, reasonCard, answer, clientId };
+
+    try {
+      const res = await submitAnswer(input);
+      setResult(res);
+      setSubmitting(false);
+      setPhase("reflection");
+    } catch {
+      // Mất mạng giữa phiên: lưu tạm vào IndexedDB, không mất bài — thử gửi
+      // lại định kỳ tới khi có mạng, không báo lỗi làm trẻ hoảng.
+      await enqueuePendingAttempt(input);
+      setSubmitting(false);
+      setPhase("offline");
+      pollForSync(clientId);
+    }
+  };
+
+  const pollForSync = (clientId: string) => {
+    const attempt = async () => {
+      try {
+        const results = await trySyncQueue();
+        const res = results[clientId];
+        if (res) {
+          setResult(res);
+          setPhase("reflection");
+          return;
+        }
+      } catch {
+        // chưa có mạng — thử lại ở lần poll kế tiếp
+      }
+      pollTimer.current = setTimeout(attempt, SYNC_POLL_MS);
+    };
+    attempt();
   };
 
   const handleReflectionChoice = async (choiceId: string) => {
@@ -169,6 +203,26 @@ export function LearnFlow({ topicId }: { topicId: string }) {
         submitting={submitting}
         onAnswer={handleAnswer}
       />
+    );
+  }
+
+  if (phase === "offline") {
+    return (
+      <>
+        <Card className="flex max-w-md flex-col items-center gap-4 text-center">
+          <div className="flex items-center gap-2">
+            <Kim mood="sleep" size="lg" />
+            <div className="h-10 w-10">
+              <Cloud />
+            </div>
+          </div>
+          <p className="font-baloo text-xl font-semibold text-sky-deep">{vi.offline.waitingTitle}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-nunito text-lg">{vi.offline.waitingBody}</p>
+            <AudioButton text={vi.offline.waitingBody} size="sm" />
+          </div>
+        </Card>
+      </>
     );
   }
 

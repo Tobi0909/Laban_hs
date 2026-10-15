@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-const STUDENT_ROUTE_DIRS = ["src/app/c", "src/app/s", "src/app/learn", "src/app/api/session-pack"];
+const STUDENT_ROUTE_DIRS = [
+  "src/app/c",
+  "src/app/s",
+  "src/app/learn",
+  "src/app/journal",
+  "src/app/api/session-pack",
+  "src/app/api/sync",
+];
 const FORBIDDEN_PATTERNS = [/["']ai["']/, /@ai-sdk\//, /anthropic/i];
 
 function listFiles(dir: string): string[] {
+  if (!existsSync(dir)) return [];
   return readdirSync(dir).flatMap((entry) => {
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) return listFiles(full);

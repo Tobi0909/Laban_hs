@@ -20,6 +20,12 @@ export default async function TeacherDashboardPage() {
         <h1 className="text-2xl font-semibold text-sky-deep">Lớp của cô/thầy</h1>
         <div className="flex gap-2">
           <Link
+            href="/teacher/insights"
+            className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-paper"
+          >
+            Xu hướng lớp
+          </Link>
+          <Link
             href="/teacher/bank"
             className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-paper"
           >

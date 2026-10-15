@@ -3,12 +3,15 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { clsx } from "@/lib/clsx";
 
+// Chữ luôn dùng text-ink (không phải text-white): các màu nền dạng pastel
+// (sky/leaf/coral/lavender) không đạt tỉ lệ tương phản AA (4.5:1) với chữ
+// trắng, trong khi ink đạt >5:1 trên cả 5 màu.
 const TONES = {
-  sky: "bg-sky border-sky-deep text-white",
+  sky: "bg-sky border-sky-deep text-ink",
   sun: "bg-sun border-[#D9A419] text-ink",
-  leaf: "bg-leaf border-[#3C9A66] text-white",
-  coral: "bg-coral border-[#E06B46] text-white",
-  lavender: "bg-lavender border-[#7C5FE0] text-white",
+  leaf: "bg-leaf border-[#3C9A66] text-ink",
+  coral: "bg-coral border-[#E06B46] text-ink",
+  lavender: "bg-lavender border-[#7C5FE0] text-ink",
   paper: "bg-card border-border text-ink",
 } as const;
 

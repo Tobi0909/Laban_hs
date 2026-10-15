@@ -38,7 +38,7 @@ function Chip({ item, disabled }: { item: DragItem; disabled?: boolean }) {
       {...listeners}
       {...attributes}
       className={clsx(
-        "flex h-16 w-16 touch-none items-center justify-center rounded-[20px] border-b-[6px] border-sky-deep bg-sky font-baloo text-2xl font-bold text-white",
+        "flex h-16 w-16 touch-none items-center justify-center rounded-[20px] border-b-[6px] border-sky-deep bg-sky font-baloo text-2xl font-bold text-ink",
         isDragging && "z-10 opacity-80",
       )}
     >
@@ -66,7 +66,7 @@ function TargetBox({
     >
       <span className="font-nunito text-sm text-ink/60">{target.label}</span>
       {placedItem ? (
-        <span className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-sky font-baloo text-xl font-bold text-white">
+        <span className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-sky font-baloo text-xl font-bold text-ink">
           {placedItem.label}
         </span>
       ) : (

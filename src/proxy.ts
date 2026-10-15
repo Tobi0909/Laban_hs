@@ -6,14 +6,20 @@ import { authConfig } from "@/auth.config";
 // stack khi debug (next dev / Turbopack HMR) — production không dùng eval().
 const DEV_SCRIPT_SRC = process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'";
 
+// Audio bài học (TTS) được lưu trên Vercel Blob — domain công khai dạng
+// *.public.blob.vercel-storage.com, không cùng origin với app.
+const BLOB_HOST = "https://*.public.blob.vercel-storage.com";
+
 const CSP = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${DEV_SCRIPT_SRC}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  "connect-src 'self'",
-  "media-src 'self' blob:",
+  `connect-src 'self' ${BLOB_HOST}`,
+  `media-src 'self' blob: ${BLOB_HOST}`,
+  "worker-src 'self'",
+  "manifest-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
   "frame-ancestors 'none'",

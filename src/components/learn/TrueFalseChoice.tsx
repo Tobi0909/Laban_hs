@@ -19,7 +19,7 @@ export function TrueFalseChoice({ selected, onSelect, disabled }: TrueFalseChoic
           disabled={disabled}
           onClick={() => onSelect(true)}
           className={clsx(
-            "flex min-h-24 min-w-32 items-center justify-center rounded-[24px] border-b-[6px] bg-leaf font-baloo text-2xl font-bold text-white transition-transform active:translate-y-1 active:border-b-[2px] disabled:opacity-60",
+            "flex min-h-24 min-w-32 items-center justify-center rounded-[24px] border-b-[6px] bg-leaf font-baloo text-2xl font-bold text-ink transition-transform active:translate-y-1 active:border-b-[2px] disabled:opacity-60",
             selected === true ? "border-sun ring-4 ring-sun" : "border-[#3C9A66]",
           )}
         >
@@ -33,7 +33,7 @@ export function TrueFalseChoice({ selected, onSelect, disabled }: TrueFalseChoic
           disabled={disabled}
           onClick={() => onSelect(false)}
           className={clsx(
-            "flex min-h-24 min-w-32 items-center justify-center rounded-[24px] border-b-[6px] bg-coral font-baloo text-2xl font-bold text-white transition-transform active:translate-y-1 active:border-b-[2px] disabled:opacity-60",
+            "flex min-h-24 min-w-32 items-center justify-center rounded-[24px] border-b-[6px] bg-coral font-baloo text-2xl font-bold text-ink transition-transform active:translate-y-1 active:border-b-[2px] disabled:opacity-60",
             selected === false ? "border-sun ring-4 ring-sun" : "border-[#E06B46]",
           )}
         >
