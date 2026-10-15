@@ -12,6 +12,10 @@ import { env } from "@/lib/env";
  */
 export const authConfig = {
   secret: env.AUTH_SECRET,
+  // Luôn deploy sau 1 reverse proxy đáng tin (Vercel) — khai báo rõ để
+  // tránh lỗi "UntrustedHost" tuỳ theo cách mỗi runtime (Node/Edge) tự
+  // suy luận biến môi trường VERCEL.
+  trustHost: true,
   session: { strategy: "jwt" },
   providers: [
     Google({
