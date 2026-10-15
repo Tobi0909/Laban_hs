@@ -15,7 +15,7 @@ const FIXTURE_STONES: JourneyStone[] = [
 
 /** Preview /journal bằng dữ liệu mẫu (chỉ dev) — không cần đăng nhập/DB. */
 export default function JournalPreviewPage() {
-  if (process.env.NODE_ENV === "production" && process.env.LIGHTHOUSE_TEST !== "1") {
+  if (process.env.NODE_ENV === "production") {
     notFound();
   }
 

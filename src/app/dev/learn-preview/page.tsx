@@ -6,7 +6,7 @@ import { LearnPreview } from "./LearnPreview";
  * mẫu — không gọi server action/DB thật, dùng cho mục đích QA thiết kế.
  */
 export default function LearnPreviewPage() {
-  if (process.env.NODE_ENV === "production" && process.env.LIGHTHOUSE_TEST !== "1") {
+  if (process.env.NODE_ENV === "production") {
     notFound();
   }
 

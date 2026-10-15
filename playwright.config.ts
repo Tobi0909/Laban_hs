@@ -15,7 +15,16 @@ export default defineConfig({
   projects: [
     {
       name: "tablet-landscape",
+      testIgnore: /accessibility\.spec\.ts/,
       use: { ...devices["iPad (gen 7) landscape"] },
+    },
+    {
+      // Riêng cho accessibility.spec.ts: dùng Chromium (không cần cài thêm
+      // thư viện hệ thống như WebKit) để chạy axe-core ổn định ở mọi môi
+      // trường CI/sandbox.
+      name: "a11y-chromium",
+      testMatch: /accessibility\.spec\.ts/,
+      use: { ...devices["iPad (gen 7) landscape"], browserName: "chromium" },
     },
   ],
 });
