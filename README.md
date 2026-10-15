@@ -8,7 +8,7 @@ bằng chứng, so sánh dự đoán với kết quả, rồi tự chọn bướ
 - Next.js (App Router) + TypeScript strict, deploy trên Vercel.
 - Tailwind CSS, Framer Motion, dnd-kit, Recharts (xu hướng lớp), lucide-react (trang giáo viên).
 - Postgres serverless Neon + Drizzle ORM.
-- Auth.js v5 (Google cho giáo viên; Credentials tự viết cho học sinh).
+- Auth.js v5 (Credentials tự viết: mật khẩu đơn giản cho giáo viên, vé đăng nhập cho học sinh).
 - Upstash Redis (rate limit/khoá tạm), Vercel Blob (ảnh/MP3), Vercel AI SDK (chỉ trang giáo viên).
 - Serwist (PWA, qua `@serwist/turbopack`) + IndexedDB (`idb`) cho hàng đợi khi mất mạng.
 - Zod, Vitest, Playwright + `@axe-core/playwright`.
@@ -26,7 +26,7 @@ npm run dev
 
 Mở [http://localhost:3000](http://localhost:3000).
 
-- Trang giáo viên: `/teacher/login` → đăng nhập Google → mở phiên lớp.
+- Trang giáo viên: `/teacher/login` → nhập `TEACHER_PASSWORD` → mở phiên lớp.
 - Trang học sinh: `/c/2A2026` (mã lớp seed sẵn) — chỉ vào được khi phiên lớp đang mở. Sau khi vào
   lớp, bấm "Bắt đầu học" để làm chủ đề "Phép cộng có nhớ trong phạm vi 100" (4 màn: La bàn → Nhiệm
   vụ → Gương phản tư → Chọn đường học), tối đa 5 bài hoặc 15 phút, rồi có thể mở **Nhật ký hành
@@ -46,7 +46,7 @@ thiếu biến nào, app sẽ báo lỗi rõ ràng ngay khi khởi động thay 
 | --- | --- |
 | `DATABASE_URL` | Connection string Postgres (Neon, dạng `postgres://...`). |
 | `AUTH_SECRET` | Secret ký JWT cho Auth.js — sinh bằng `npx auth secret`. |
-| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | OAuth Google cho đăng nhập giáo viên. |
+| `TEACHER_PASSWORD` | Mật khẩu đơn giản để đăng nhập trang giáo viên (`/teacher/login`), dùng chung cho mọi giáo viên. |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Rate limit + khoá tạm sau 5 lần đoán sai. |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob (lưu ảnh/âm thanh bài tập). |
 | `AI_MODEL` | Model qua Vercel AI Gateway (vd `anthropic/claude-sonnet-4-5`) — chỉ dùng ở `/teacher/bank`. |
@@ -69,7 +69,7 @@ npm run build         # Production build
 
 - `test:e2e` cần server dev đang chạy với `DATABASE_URL`/Upstash thật và đã `db:seed` (dùng học
   sinh "Bin" trong lớp seed `2A2026`). Dùng route `POST /api/dev/class-session` (chỉ tồn tại ngoài
-  production) để mở/đóng phiên lớp mà không cần đăng nhập Google thật. Gồm: đăng nhập học sinh, làm
+  production) để mở/đóng phiên lớp mà không cần đăng nhập giáo viên thật. Gồm: đăng nhập học sinh, làm
   trọn 1 phiên, và **mất mạng giữa phiên rồi có mạng lại không mất bài**
   (`e2e/offline-sync.spec.ts`, dùng `context.setOffline()`).
 - `e2e/accessibility.spec.ts` chạy axe-core trên `/`, `/teacher/login`, `/dev/learn-preview`,
@@ -114,8 +114,9 @@ Có 2 cách:
 
 ## Xác thực & vào lớp
 
-- **Giáo viên**: đăng nhập Google tại `/teacher/login`. Lần đầu đăng nhập tự tạo bản ghi `teachers`
-  theo email. Middleware (`src/proxy.ts`) chặn toàn bộ `/teacher/*` nếu chưa đăng nhập giáo viên.
+- **Giáo viên**: nhập mật khẩu dùng chung (`TEACHER_PASSWORD`) tại `/teacher/login`. Nếu bảng
+  `teachers` đang rỗng, lần đăng nhập đầu tiên tự tạo 1 bản ghi `teachers`. Middleware
+  (`src/proxy.ts`) chặn toàn bộ `/teacher/*` nếu chưa đăng nhập giáo viên.
 - **Học sinh**: vào `/c/[joinCode]` → chỉ thấy lưới avatar khi phiên lớp (`class_sessions`) đang mở
   → chạm avatar của mình → chạm đúng 2 hình bí mật (thứ tự giáo viên đã đặt khi thêm học sinh) hoặc
   quét thẻ QR in sẵn. Xác thực qua "vé đăng nhập" một lần (`login-ticket`, TTL 60s trong Redis) để
@@ -211,9 +212,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<domain>/api/cron/cleanup
 4. **Vercel Blob**: Vercel → Storage → tạo Blob store → copy `BLOB_READ_WRITE_TOKEN`.
 5. **Auth.js**:
    - `AUTH_SECRET`: chạy `npx auth secret` hoặc `openssl rand -base64 32`.
-   - `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`: tạo OAuth Client (loại Web application) trong
-     [Google Cloud Console](https://console.cloud.google.com/apis/credentials), Authorized redirect
-     URI = `https://<domain-vercel>/api/auth/callback/google`.
+   - `TEACHER_PASSWORD`: tự đặt 1 mật khẩu bất kỳ, dùng chung để đăng nhập `/teacher/login`.
 6. **AI Gateway**: Vercel → project Settings → AI → bật AI Gateway (tự cấp quyền qua OIDC khi chạy
    trên Vercel, không cần `AI_GATEWAY_API_KEY`; chạy local thì tạo key trong Vercel dashboard →
    AI Gateway → API Keys). Đặt `AI_MODEL` theo model muốn dùng.
@@ -256,7 +255,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<domain>/api/cron/cleanup
       unit test, cấu hình Vitest/Playwright/Drizzle.
 - [x] Giai đoạn 1 — Data model + Auth + vào lớp: schema Drizzle đầy đủ + migration đầu tiên + seed;
       component `components/kid/` (KidButton, AudioButton, Card, ProgressStones, `<Kim/>` 8 trạng
-      thái); `/styleguide`; Auth.js (Google giáo viên, Credentials học sinh qua vé đăng nhập);
+      thái); `/styleguide`; Auth.js (Credentials: mật khẩu đơn giản cho giáo viên, vé đăng nhập cho học sinh);
       `/c/[joinCode]` (avatar + 2 hình bí mật hoặc QR), khoá tạm sau 5 lần sai; trang giáo viên
       (tạo lớp, thêm học sinh, mở/đóng phiên, in thẻ QR A4); middleware chặn `/teacher/*` + CSP.
 - [x] Giai đoạn 2 — Vòng học 4 màn (không dùng AI):
@@ -286,7 +285,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<domain>/api/cron/cleanup
 `e2e/accessibility.spec.ts` (axe-core) đã chạy thật trong môi trường phát triển hiện tại — **0 lỗi
 serious/critical** trên 4 trang — và Lighthouse (Chrome headless, mobile) đo thật trên
 `/dev/learn-preview`/`/dev/journal-preview`: Accessibility 100, Performance 98–99. Các luồng cần
-Neon/Upstash/Google OAuth/AI Gateway thật (migrate, seed, đăng nhập Google, soạn bài thật với
+Neon/Upstash/AI Gateway thật (migrate, seed, đăng nhập giáo viên, soạn bài thật với
 AI/TTS, `e2e/student-login.spec.ts`, `e2e/learn-session.spec.ts`, `e2e/offline-sync.spec.ts`) chưa
 chạy được trong môi trường phát triển hiện tại vì chưa có thông tin đăng nhập dịch vụ thật — hãy
 điền `.env.local` theo bảng biến môi trường ở trên (để `TTS_PROVIDER=mock` nếu chưa có nhà cung cấp

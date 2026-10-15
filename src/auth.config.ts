@@ -1,14 +1,11 @@
 import type { NextAuthConfig } from "next-auth";
-import Google from "next-auth/providers/google";
-import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { teachers } from "@/lib/db/schema";
 import { env } from "@/lib/env";
 
 /**
  * Cấu hình Auth.js an toàn cho Edge Runtime (dùng trong middleware/proxy):
- * không import bất kỳ module nào cần node:crypto (xem auth.ts cho provider
- * Credentials đầy đủ, chỉ chạy ở Node runtime trong route handler).
+ * không import bất kỳ module nào cần node:crypto hay truy cập DB (xem
+ * auth.ts cho các provider Credentials đầy đủ, chỉ chạy ở Node runtime
+ * trong route handler).
  */
 export const authConfig = {
   secret: env.AUTH_SECRET,
@@ -17,31 +14,12 @@ export const authConfig = {
   // suy luận biến môi trường VERCEL.
   trustHost: true,
   session: { strategy: "jwt" },
-  providers: [
-    Google({
-      clientId: env.AUTH_GOOGLE_ID,
-      clientSecret: env.AUTH_GOOGLE_SECRET,
-    }),
-  ],
+  providers: [],
   callbacks: {
-    async signIn({ user, account }) {
-      if (account?.provider === "google") {
-        const email = user.email;
-        if (!email) return false;
-        const existing = await db.query.teachers.findFirst({ where: eq(teachers.email, email) });
-        if (!existing) {
-          await db.insert(teachers).values({ email, name: user.name ?? email });
-        }
-      }
-      return true;
-    },
     async jwt({ token, user, account }) {
-      if (account?.provider === "google" && user?.email) {
-        const teacher = await db.query.teachers.findFirst({ where: eq(teachers.email, user.email) });
-        if (teacher) {
-          token.role = "teacher";
-          token.teacherId = teacher.id;
-        }
+      if (account?.provider === "teacher" && user?.id) {
+        token.role = "teacher";
+        token.teacherId = user.id;
       } else if (user && "role" in user && user.role === "student") {
         token.role = "student";
         token.studentId = user.id;

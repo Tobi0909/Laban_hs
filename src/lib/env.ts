@@ -3,8 +3,7 @@ import { z } from "zod";
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   AUTH_SECRET: z.string().min(1),
-  AUTH_GOOGLE_ID: z.string().min(1),
-  AUTH_GOOGLE_SECRET: z.string().min(1),
+  TEACHER_PASSWORD: z.string().min(1),
   UPSTASH_REDIS_REST_URL: z.string().url(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
   BLOB_READ_WRITE_TOKEN: z.string().min(1),
@@ -29,6 +28,14 @@ const envSchema = z.object({
 // real requests still go through full validation at runtime.
 const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 
-export const env = isBuildPhase
+// Netlify bundles proxy.ts (Edge middleware) by actually executing the
+// compiled module to resolve its exports — a separate step from `next build`
+// that never sets NEXT_PHASE and has no secrets injected. Treat "no
+// DATABASE_URL at all" as a signal we're in that sandbox (or similar) rather
+// than a real request, and skip strict validation; a genuinely misconfigured
+// deployment still fails loudly as soon as something tries to use env.*.
+const hasAnyRealEnv = Boolean(process.env.DATABASE_URL);
+
+export const env = isBuildPhase || !hasAnyRealEnv
   ? (process.env as unknown as z.infer<typeof envSchema>)
   : envSchema.parse(process.env);

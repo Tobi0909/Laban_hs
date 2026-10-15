@@ -77,7 +77,9 @@ export const vi = {
     retry: "Thử lại ngay",
   },
   teacher: {
-    loginWithGoogle: "Đăng nhập bằng Google",
+    passwordLabel: "Mật khẩu",
+    loginButton: "Đăng nhập",
+    loginError: "Sai mật khẩu, vui lòng thử lại.",
     openSession: "Mở phiên lớp",
     closeSession: "Đóng phiên lớp",
     sessionOpenLabel: "Phiên đang mở",

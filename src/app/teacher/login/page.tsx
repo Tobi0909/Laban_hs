@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { GoogleSignInButton } from "./GoogleSignInButton";
+import { PasswordLoginForm } from "./PasswordLoginForm";
 
 export default async function TeacherLoginPage() {
   const session = await auth();
@@ -13,7 +13,7 @@ export default async function TeacherLoginPage() {
       <div className="flex max-w-sm flex-col items-center gap-4 rounded-2xl border border-border bg-card p-8 text-center">
         <h1 className="font-baloo text-2xl font-bold text-sky-deep">La bàn tự tin — Giáo viên</h1>
         <p className="text-sm text-ink/70">Đăng nhập để mở lớp, thêm học sinh và duyệt bài.</p>
-        <GoogleSignInButton />
+        <PasswordLoginForm />
       </div>
     </main>
   );
