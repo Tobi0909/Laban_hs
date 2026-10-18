@@ -3,6 +3,14 @@ export const vi = {
     appName: "La bàn tự tin",
     teacherLabel: "cô/thầy",
   },
+  home: {
+    tagline: "Nơi em tự đoán, tự học, tự tin hơn mỗi ngày.",
+    studentHeading: "Em là học sinh?",
+    joinCodeLabel: "Nhập mã lớp cô/thầy đưa",
+    joinCodePlaceholder: "Ví dụ: 2A2026",
+    joinButton: "Vào lớp",
+    teacherLinkPrompt: "Cô/thầy đăng nhập tại đây",
+  },
   confidence: {
     needHelp: "Em cần cô giúp",
     thinkCan: "Em nghĩ em làm được",
