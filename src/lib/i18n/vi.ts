@@ -79,7 +79,7 @@ export const vi = {
   teacher: {
     passwordLabel: "Mật khẩu",
     loginButton: "Đăng nhập",
-    loginError: "Sai mật khẩu, vui lòng thử lại.",
+    loginError: "Sai mật khẩu, vui lòng thử lại sau vài phút.",
     openSession: "Mở phiên lớp",
     closeSession: "Đóng phiên lớp",
     sessionOpenLabel: "Phiên đang mở",

@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { authConfig } from "@/auth.config";
@@ -5,6 +6,25 @@ import { db } from "@/lib/db";
 import { teachers } from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import { consumeLoginTicket } from "@/lib/auth/login-ticket";
+import {
+  isTeacherLoginLocked,
+  recordFailedTeacherLogin,
+  clearFailedTeacherLogins,
+} from "@/lib/auth/teacher-login-lock";
+
+/** So khớp 2 chuỗi không lộ timing side-channel; khác độ dài coi như không khớp. */
+function timingSafeEqualString(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+
+/** Lấy IP nguồn để khoá tạm sau nhiều lần sai — Vercel/most proxy đặt sẵn header này. */
+function clientIpFrom(request: Request | undefined): string {
+  const forwardedFor = request?.headers.get("x-forwarded-for");
+  return forwardedFor?.split(",")[0]?.trim() || "unknown";
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -14,9 +34,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       id: "teacher",
       name: "Giáo viên",
       credentials: { password: { label: "password", type: "password" } },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
+        const ip = clientIpFrom(request);
+        if (await isTeacherLoginLocked(ip)) return null;
+
         const password = typeof credentials?.password === "string" ? credentials.password : null;
-        if (!password || password !== env.TEACHER_PASSWORD) return null;
+        if (!password || !timingSafeEqualString(password, env.TEACHER_PASSWORD)) {
+          await recordFailedTeacherLogin(ip);
+          return null;
+        }
+        await clearFailedTeacherLogins(ip);
 
         let teacher = await db.query.teachers.findFirst();
         if (!teacher) {

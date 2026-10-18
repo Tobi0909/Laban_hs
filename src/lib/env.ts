@@ -30,12 +30,19 @@ const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 
 // Netlify bundles proxy.ts (Edge middleware) by actually executing the
 // compiled module to resolve its exports — a separate step from `next build`
-// that never sets NEXT_PHASE and has no secrets injected. Treat "no
-// DATABASE_URL at all" as a signal we're in that sandbox (or similar) rather
-// than a real request, and skip strict validation; a genuinely misconfigured
-// deployment still fails loudly as soon as something tries to use env.*.
-const hasAnyRealEnv = Boolean(process.env.DATABASE_URL);
+// that never sets NEXT_PHASE and has no secrets injected at all. Detect that
+// sandbox by checking that *every* required secret is absent (not just
+// DATABASE_URL) — a genuinely misconfigured deployment normally has most
+// variables set and only one missing/typo'd, so it still hits envSchema.parse
+// below and fails loudly instead of silently falling back to raw,
+// un-defaulted process.env.
+const hasNoRealEnvAtAll =
+  !process.env.DATABASE_URL &&
+  !process.env.AUTH_SECRET &&
+  !process.env.TEACHER_PASSWORD &&
+  !process.env.UPSTASH_REDIS_REST_URL &&
+  !process.env.CRON_SECRET;
 
-export const env = isBuildPhase || !hasAnyRealEnv
+export const env = isBuildPhase || hasNoRealEnvAtAll
   ? (process.env as unknown as z.infer<typeof envSchema>)
   : envSchema.parse(process.env);
