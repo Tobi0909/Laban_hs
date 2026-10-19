@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { classes, tasks, topics } from "@/lib/db/schema";
 import { requireTeacher } from "@/lib/auth/guards";
 import { TaskForm } from "../TaskForm";
+import { DeleteTaskButton } from "../DeleteTaskButton";
 import type { Explanation, TaskAnswerKey, TaskContent, WorkedExample } from "@/lib/learning/types";
 
 export default async function EditTaskPage({
@@ -23,9 +24,12 @@ export default async function EditTaskPage({
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
-      <h1 className="mb-6 text-2xl font-semibold text-sky-deep">
-        Sửa bài — {topic.title} (lớp {classRow.name})
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-sky-deep">
+          Sửa bài — {topic.title} (lớp {classRow.name})
+        </h1>
+        <DeleteTaskButton taskId={task.id} redirectTo="/teacher/bank" />
+      </div>
       <TaskForm
         topicId={task.topicId}
         grade={classRow.grade}

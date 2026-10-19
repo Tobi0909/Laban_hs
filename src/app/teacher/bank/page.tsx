@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { classes, tasks as tasksTable } from "@/lib/db/schema";
 import { requireTeacher } from "@/lib/auth/guards";
 import { NewTopicForm } from "./NewTopicForm";
+import { ImportQuestionsForm } from "./ImportQuestionsForm";
+import { DeleteTaskButton } from "./DeleteTaskButton";
 
 export default async function BankPage() {
   const { teacherId } = await requireTeacher();
@@ -51,6 +53,8 @@ export default async function BankPage() {
             </Link>
           </div>
 
+          <ImportQuestionsForm topicId={topic.id} />
+
           {topicTasks.length === 0 ? (
             <p className="text-sm text-ink/50">Chưa có bài nào.</p>
           ) : (
@@ -80,9 +84,12 @@ export default async function BankPage() {
                       </span>
                     </td>
                     <td>
-                      <Link href={`/teacher/bank/${t.id}`} className="text-sky-deep underline">
-                        Sửa
-                      </Link>
+                      <div className="flex items-center gap-3">
+                        <Link href={`/teacher/bank/${t.id}`} className="text-sky-deep underline">
+                          Sửa
+                        </Link>
+                        <DeleteTaskButton taskId={t.id} />
+                      </div>
                     </td>
                   </tr>
                 ))}

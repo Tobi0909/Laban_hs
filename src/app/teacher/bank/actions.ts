@@ -3,9 +3,11 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { classes, reflectionTemplates, tasks, topics } from "@/lib/db/schema";
+import { attempts, classes, reflectionTemplates, tasks, topics } from "@/lib/db/schema";
 import { requireTeacher } from "@/lib/auth/guards";
 import { deriveTask, type TaskFormInput } from "@/lib/authoring/derive-task";
+import { parseImportFile } from "@/lib/authoring/parse-document";
+import { parseExamText } from "@/lib/authoring/parse-exam";
 import type { Explanation, StepExplanationItem, WorkedExample } from "@/lib/learning/types";
 import type { ReflectionChoice } from "@/lib/learning/pick-reflection";
 import type { Calibration } from "@/lib/learning/grade";
@@ -103,6 +105,67 @@ export async function approveTask(taskId: string) {
 
   revalidatePath("/teacher/bank");
   revalidatePath(`/teacher/bank/${taskId}`);
+}
+
+/**
+ * Xoá hẳn 1 bài khỏi ngân hàng (vd. câu lỗi/không dùng sau khi import từ
+ * file). `attempts.taskId` không cascade ở DB nên phải xoá attempts của
+ * bài này trước; reflections/next_steps của các attempts đó tự cascade.
+ */
+export async function deleteTask(taskId: string) {
+  const { teacherId } = await requireTeacher();
+  await assertTaskOwnedByTeacher(taskId, teacherId);
+
+  await db.delete(attempts).where(eq(attempts.taskId, taskId));
+  await db.delete(tasks).where(eq(tasks.id, taskId));
+
+  revalidatePath("/teacher/bank");
+}
+
+export interface ImportQuestionsResult {
+  imported: number;
+  warnings: string[];
+}
+
+/**
+ * Giáo viên tải 1 file đề thi (.txt/.docx/.pdf) theo mẫu "Câu N / A-D /
+ * Đáp án" (xem parseExamText) và tạo hàng loạt bài ở trạng thái "draft"
+ * trong đúng chủ đề đã chọn — không dùng AI, chỉ nhận dạng theo mẫu cố
+ * định. Giáo viên tự duyệt/sửa từng bài như bình thường (xem approveTask).
+ */
+export async function importQuestionsFromFile(topicId: string, formData: FormData): Promise<ImportQuestionsResult> {
+  const { teacherId } = await requireTeacher();
+  await assertTopicOwnedByTeacher(topicId, teacherId);
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    throw new Error("Vui lòng chọn 1 file để tải lên.");
+  }
+
+  const text = await parseImportFile(file);
+  const { questions, warnings } = parseExamText(text);
+
+  const rows = questions.map(({ prompt, formInput }) => {
+    const { content, answerKey } = deriveTask(formInput);
+    return {
+      topicId,
+      difficulty: 1 as const,
+      type: formInput.type,
+      prompt,
+      options: content,
+      answerKey,
+      workedExample: { steps: [] } satisfies WorkedExample,
+      explanation: { steps: [] } satisfies Explanation,
+      status: "draft" as const,
+    };
+  });
+
+  if (rows.length > 0) {
+    await db.insert(tasks).values(rows);
+  }
+
+  revalidatePath("/teacher/bank");
+  return { imported: rows.length, warnings };
 }
 
 export interface ReflectionTemplateInput {
