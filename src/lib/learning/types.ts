@@ -14,7 +14,6 @@ export interface PickImageOption {
   id: string;
   iconId: IconId;
   label: string;
-  audioUrl?: string | null;
 }
 
 export interface PickImageContent {
@@ -51,7 +50,6 @@ export interface StepCard {
   id: string;
   text: string;
   iconId: IconId;
-  audioUrl?: string | null;
 }
 
 export interface OrderStepsContent {
@@ -88,7 +86,6 @@ export interface TaskAnswerKey {
 export interface StepExplanationItem {
   text: string;
   iconId: IconId;
-  audioUrl?: string | null;
 }
 
 export interface WorkedExample {

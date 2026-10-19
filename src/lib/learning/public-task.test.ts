@@ -6,7 +6,6 @@ const taskRow: TaskRow & { answerKey: unknown; workedExample: unknown; explanati
   type: "number",
   difficulty: 1,
   prompt: "27 + 6 bằng mấy?",
-  promptAudioUrl: null,
   content: { type: "number", maxDigits: 2 },
   // Các trường sau mô phỏng dữ liệu đầy đủ lấy từ DB — không được lọt ra public task.
   answerKey: { correct: { type: "number", value: 33 }, distractors: [] },

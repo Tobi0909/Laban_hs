@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { Kim, type KimMood } from "@/components/kid/Kim";
-import { AudioButton } from "@/components/kid/AudioButton";
 import { Sparkle, MagnifyingGlass } from "@/components/kid/icons";
 import { vi } from "@/lib/i18n/vi";
 import type { Confidence } from "@/lib/learning/grade";
@@ -65,15 +64,6 @@ export function JourneyMap({ stones }: { stones: JourneyStone[] }) {
   }
 
   const selected = openIndex !== null ? stones[openIndex] : null;
-  const selectedText = selected
-    ? `${vi.journey.guessPrefix} ${CONFIDENCE_LABEL[selected.confidence]}. ${vi.journey.resultPrefix} ${
-        selected.isCorrect ? vi.journey.resultCorrect : vi.journey.resultWrong
-      }.${
-        selected.chosenNextStep
-          ? ` ${vi.journey.choicePrefix} ${NEXT_STEP_LABEL[selected.chosenNextStep]}.`
-          : ""
-      }`
-    : "";
 
   return (
     <div className="w-full">
@@ -154,7 +144,6 @@ export function JourneyMap({ stones }: { stones: JourneyStone[] }) {
                 {vi.journey.choicePrefix} <strong>{NEXT_STEP_LABEL[selected.chosenNextStep]}</strong>
               </p>
             )}
-            <AudioButton text={selectedText} />
             <button
               type="button"
               onClick={() => setOpenIndex(null)}

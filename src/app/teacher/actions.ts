@@ -1,10 +1,10 @@
 "use server";
 
 import { customAlphabet } from "nanoid";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { classes, classSessions, students } from "@/lib/db/schema";
+import { attempts, classes, classSessions, students, tasks, topics } from "@/lib/db/schema";
 import { requireTeacher } from "@/lib/auth/guards";
 import { hashPictureSecret, hashQrToken, generateQrToken } from "@/lib/auth/picture-secret";
 import { AVATAR_IDS, ICON_IDS, type AvatarId, type IconId } from "@/components/kid/icons";
@@ -147,4 +147,31 @@ export async function deleteStudentData(classId: string, studentId: string) {
 
   await db.delete(students).where(eq(students.id, studentId));
   revalidatePath(`/teacher/classes/${classId}`);
+}
+
+/**
+ * Xoá vĩnh viễn 1 lớp cùng toàn bộ dữ liệu liên quan (học sinh, phiên lớp,
+ * chủ đề, bài, lượt làm bài...). `attempts.taskId` không có cascade ở DB
+ * nên phải xoá attempts của các task thuộc lớp trước, phần còn lại cascade
+ * tự động theo schema.
+ */
+export async function deleteClass(classId: string) {
+  await requireTeacher(classId);
+
+  await db.transaction(async (tx) => {
+    const classTopics = await tx.query.topics.findMany({ where: eq(topics.classId, classId) });
+    const topicIds = classTopics.map((t) => t.id);
+
+    if (topicIds.length > 0) {
+      const classTasks = await tx.query.tasks.findMany({ where: inArray(tasks.topicId, topicIds) });
+      const taskIds = classTasks.map((t) => t.id);
+      if (taskIds.length > 0) {
+        await tx.delete(attempts).where(inArray(attempts.taskId, taskIds));
+      }
+    }
+
+    await tx.delete(classes).where(eq(classes.id, classId));
+  });
+
+  revalidatePath("/teacher");
 }

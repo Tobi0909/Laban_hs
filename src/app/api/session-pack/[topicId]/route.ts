@@ -37,7 +37,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ top
     type: t.type,
     difficulty: t.difficulty,
     prompt: t.prompt,
-    promptAudioUrl: t.promptAudioUrl,
     content: t.options as TaskContent,
   }));
 

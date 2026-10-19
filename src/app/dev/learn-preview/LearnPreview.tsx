@@ -25,7 +25,6 @@ const SAMPLE_TASKS: Record<string, PublicTask> = {
     type: "drag_drop",
     difficulty: 2,
     prompt: "Kéo thẻ số vào đúng hàng Chục và hàng Đơn vị của số 58",
-    promptAudioUrl: null,
     content: {
       type: "drag_drop",
       items: [
@@ -43,7 +42,6 @@ const SAMPLE_TASKS: Record<string, PublicTask> = {
     type: "pick_image",
     difficulty: 1,
     prompt: "Chọn kết quả đúng của 9 cộng 4",
-    promptAudioUrl: null,
     content: {
       type: "pick_image",
       options: [
@@ -111,7 +109,6 @@ export function LearnPreview() {
             calibration: "match",
             mistakeTag: null,
             question: "Em đoán rất đúng về bản thân! Điều gì giúp em biết vậy?",
-            questionAudioUrl: null,
             choices: [
               { id: "c1", label: "Em đã luyện nhiều rồi" },
               { id: "c2", label: "Em nhớ cách làm" },

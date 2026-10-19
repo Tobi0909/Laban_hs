@@ -258,7 +258,6 @@ export function TaskForm(props: TaskFormProps) {
     type,
     difficulty,
     prompt: prompt || "(chưa nhập đề bài)",
-    promptAudioUrl: null,
     content: previewContent(builder),
   };
 

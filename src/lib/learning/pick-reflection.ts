@@ -4,7 +4,6 @@ import type { MistakeTag } from "./types";
 export interface ReflectionChoice {
   id: string;
   label: string;
-  audioUrl?: string | null;
 }
 
 export interface ReflectionTemplateRow {
@@ -12,7 +11,6 @@ export interface ReflectionTemplateRow {
   calibration: Calibration;
   mistakeTag: string | null;
   question: string;
-  questionAudioUrl: string | null;
   choices: ReflectionChoice[];
 }
 

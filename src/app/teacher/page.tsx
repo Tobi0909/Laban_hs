@@ -5,6 +5,7 @@ import { classes as classesTable } from "@/lib/db/schema";
 import { requireTeacher } from "@/lib/auth/guards";
 import { isClassSessionOpen } from "@/lib/auth/class-session";
 import { SessionToggle } from "./SessionToggle";
+import { DeleteClassButton } from "./DeleteClassButton";
 
 export default async function TeacherDashboardPage() {
   const { teacherId } = await requireTeacher();
@@ -58,7 +59,10 @@ export default async function TeacherDashboardPage() {
                 Mã vào lớp: <code>{c.joinCode}</code>
               </p>
             </div>
-            <SessionToggle classId={c.id} sessionOpen={c.sessionOpen} />
+            <div className="flex items-center gap-3">
+              <SessionToggle classId={c.id} sessionOpen={c.sessionOpen} />
+              <DeleteClassButton classId={c.id} classLabel={`${c.name} — Lớp ${c.grade}`} />
+            </div>
           </li>
         ))}
       </ul>

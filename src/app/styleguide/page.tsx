@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { Kim, type KimMood } from "@/components/kid/Kim";
 import { KidButton } from "@/components/kid/KidButton";
-import { AudioButton } from "@/components/kid/AudioButton";
 import { Card } from "@/components/kid/Card";
 import { ProgressStones } from "@/components/kid/ProgressStones";
 import { ICON_IDS, ICONS, ICON_LABELS_VI, AVATAR_IDS, AVATARS, AVATAR_LABELS_VI } from "@/components/kid/icons";
@@ -71,14 +70,6 @@ export default function StyleguidePage() {
           <KidButton tone="paper" disabled>
             Vô hiệu hoá
           </KidButton>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-4 font-baloo text-2xl font-semibold">AudioButton</h2>
-        <div className="flex items-center gap-4">
-          <AudioButton text="Em tự tin đến đâu với bài này?" />
-          <AudioButton text="Nghe lại câu hỏi" size="sm" />
         </div>
       </section>
 

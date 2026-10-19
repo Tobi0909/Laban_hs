@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Kim, type KimMood } from "@/components/kid/Kim";
 import { Card } from "@/components/kid/Card";
-import { AudioButton } from "@/components/kid/AudioButton";
 import type { Confidence } from "@/lib/learning/grade";
 import { vi } from "@/lib/i18n/vi";
 import { clsx } from "@/lib/clsx";
@@ -23,11 +22,9 @@ const REASON_CARDS: { id: string; label: string }[] = [
 
 export function ConfidenceScreen({
   prompt,
-  promptAudioUrl,
   onSubmit,
 }: {
   prompt: string;
-  promptAudioUrl?: string | null;
   onSubmit: (confidence: Confidence, reasonCard: string | null) => void;
 }) {
   const [confidence, setConfidence] = useState<Confidence | null>(null);
@@ -44,10 +41,7 @@ export function ConfidenceScreen({
         <Kim mood={CONFIDENCE_CARDS[confidence - 1].mood} size="lg" />
         <p className="font-baloo text-2xl font-semibold text-sky-deep">{vi.confidence.thanks}</p>
         <Card className="flex w-full flex-col items-center gap-4">
-          <div className="flex items-center gap-2">
-            <p className="font-nunito text-xl">{vi.reasonCards.prompt}</p>
-            <AudioButton text={vi.reasonCards.prompt} size="sm" />
-          </div>
+          <p className="font-nunito text-xl">{vi.reasonCards.prompt}</p>
           <div className="grid grid-cols-2 gap-3">
             {REASON_CARDS.map((card) => (
               <button
@@ -75,14 +69,8 @@ export function ConfidenceScreen({
   return (
     <div className="flex w-full max-w-2xl flex-col items-center gap-6 text-center">
       <Kim mood="think" size="lg" />
-      <div className="flex items-center gap-2">
-        <p className="font-baloo text-2xl font-semibold">{prompt}</p>
-        <AudioButton text={prompt} audioUrl={promptAudioUrl} />
-      </div>
-      <div className="flex items-center gap-2">
-        <p className="font-nunito text-xl">{vi.confidence.question}</p>
-        <AudioButton text={vi.confidence.question} size="sm" />
-      </div>
+      <p className="font-baloo text-2xl font-semibold">{prompt}</p>
+      <p className="font-nunito text-xl">{vi.confidence.question}</p>
       <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
         {CONFIDENCE_CARDS.map((c) => (
           <button

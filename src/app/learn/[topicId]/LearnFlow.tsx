@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Kim } from "@/components/kid/Kim";
 import { Card } from "@/components/kid/Card";
-import { AudioButton } from "@/components/kid/AudioButton";
 import { Cloud } from "@/components/kid/icons";
 import type { Confidence } from "@/lib/learning/grade";
 import type { AnswerValue } from "@/lib/learning/types";
@@ -186,11 +185,7 @@ export function LearnFlow({ topicId }: { topicId: string }) {
 
   if (phase === "confidence") {
     return (
-      <ConfidenceScreen
-        prompt={currentTask.prompt}
-        promptAudioUrl={currentTask.promptAudioUrl}
-        onSubmit={handleConfidenceSubmit}
-      />
+      <ConfidenceScreen prompt={currentTask.prompt} onSubmit={handleConfidenceSubmit} />
     );
   }
 
@@ -217,10 +212,7 @@ export function LearnFlow({ topicId }: { topicId: string }) {
             </div>
           </div>
           <p className="font-baloo text-xl font-semibold text-sky-deep">{vi.offline.waitingTitle}</p>
-          <div className="flex items-center gap-2">
-            <p className="font-nunito text-lg">{vi.offline.waitingBody}</p>
-            <AudioButton text={vi.offline.waitingBody} size="sm" />
-          </div>
+          <p className="font-nunito text-lg">{vi.offline.waitingBody}</p>
         </Card>
       </>
     );

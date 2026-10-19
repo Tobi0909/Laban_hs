@@ -29,7 +29,6 @@
     "@serwist/turbopack": "^9.5.13",
     "@upstash/ratelimit": "^2.2.0",
     "@upstash/redis": "^1.39.0",
-    "@vercel/blob": "^2.8.2",
     "ai": "^7.0.140",
     "dotenv": "^18.0.8",
     "drizzle-orm": "^0.45.4",

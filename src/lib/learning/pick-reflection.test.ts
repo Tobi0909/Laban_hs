@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { pickReflectionTemplate, type ReflectionTemplateRow } from "./pick-reflection";
 
 const templates: ReflectionTemplateRow[] = [
-  { id: "match-1", calibration: "match", mistakeTag: null, question: "Q match 1", questionAudioUrl: null, choices: [] },
-  { id: "match-2", calibration: "match", mistakeTag: null, question: "Q match 2", questionAudioUrl: null, choices: [] },
-  { id: "under-1", calibration: "under", mistakeTag: null, question: "Q under 1", questionAudioUrl: null, choices: [] },
-  { id: "over-generic", calibration: "over", mistakeTag: null, question: "Q over generic", questionAudioUrl: null, choices: [] },
-  { id: "over-quen-nho", calibration: "over", mistakeTag: "quen_nho", question: "Q over quen_nho", questionAudioUrl: null, choices: [] },
-  { id: "over-nham", calibration: "over", mistakeTag: "nham_hang_chuc", question: "Q over nham", questionAudioUrl: null, choices: [] },
+  { id: "match-1", calibration: "match", mistakeTag: null, question: "Q match 1", choices: [] },
+  { id: "match-2", calibration: "match", mistakeTag: null, question: "Q match 2", choices: [] },
+  { id: "under-1", calibration: "under", mistakeTag: null, question: "Q under 1", choices: [] },
+  { id: "over-generic", calibration: "over", mistakeTag: null, question: "Q over generic", choices: [] },
+  { id: "over-quen-nho", calibration: "over", mistakeTag: "quen_nho", question: "Q over quen_nho", choices: [] },
+  { id: "over-nham", calibration: "over", mistakeTag: "nham_hang_chuc", question: "Q over nham", choices: [] },
 ];
 
 describe("pickReflectionTemplate", () => {

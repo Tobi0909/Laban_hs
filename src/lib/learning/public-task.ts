@@ -6,7 +6,6 @@ export interface TaskRow {
   type: TaskType;
   difficulty: number;
   prompt: string;
-  promptAudioUrl: string | null;
   content: TaskContent;
 }
 
@@ -15,7 +14,6 @@ export interface PublicTask {
   type: TaskType;
   difficulty: number;
   prompt: string;
-  promptAudioUrl: string | null;
   content: TaskContent;
 }
 
@@ -30,7 +28,6 @@ export function toPublicTask(task: TaskRow): PublicTask {
     type: task.type,
     difficulty: task.difficulty,
     prompt: task.prompt,
-    promptAudioUrl: task.promptAudioUrl,
     content: task.content,
   };
 }

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { Kim } from "@/components/kid/Kim";
-import { AudioButton } from "@/components/kid/AudioButton";
 import { vi } from "@/lib/i18n/vi";
 
 const CONFETTI_COLORS = ["#FFC93C", "#5CC98A", "#FF8A65", "#A78BFA", "#4FB3E8"];
@@ -44,10 +43,7 @@ export function CelebrationScreen() {
     <div className="relative flex w-full max-w-xl flex-col items-center gap-6 text-center">
       <Confetti />
       <Kim mood="cheer" size="lg" />
-      <div className="flex items-center gap-2">
-        <p className="font-baloo text-3xl font-bold text-sky-deep">{vi.learn.celebrateTitle}</p>
-        <AudioButton text={vi.learn.celebrateTitle} />
-      </div>
+      <p className="font-baloo text-3xl font-bold text-sky-deep">{vi.learn.celebrateTitle}</p>
       <p className="font-nunito text-xl">{vi.learn.celebrateBody}</p>
       <div className="flex gap-3">
         <Link

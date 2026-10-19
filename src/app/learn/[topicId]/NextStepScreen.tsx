@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Kim } from "@/components/kid/Kim";
 import { Card } from "@/components/kid/Card";
-import { AudioButton } from "@/components/kid/AudioButton";
 import { RefreshLoop, OpenBook, LightBulb, Mountain, ICONS } from "@/components/kid/icons";
 import type { NextStepChoice } from "@/lib/db/schema";
 import type { Explanation, WorkedExample } from "@/lib/learning/types";
@@ -49,7 +48,6 @@ export function NextStepScreen({
                   <Icon />
                 </div>
                 <p className="flex-1 font-nunito text-lg">{step.text}</p>
-                <AudioButton text={step.text} audioUrl={step.audioUrl} size="sm" />
               </div>
             );
           })}
@@ -68,10 +66,7 @@ export function NextStepScreen({
   return (
     <div className="flex w-full max-w-2xl flex-col items-center gap-6 text-center">
       <Kim mood="ok" size="md" />
-      <div className="flex items-center gap-2">
-        <p className="font-nunito text-xl">{reasonText}</p>
-        <AudioButton text={reasonText} size="sm" />
-      </div>
+      <p className="font-nunito text-xl">{reasonText}</p>
       <div className="grid w-full grid-cols-2 gap-4">
         {BUTTONS.map((b) => {
           const Icon = b.icon;

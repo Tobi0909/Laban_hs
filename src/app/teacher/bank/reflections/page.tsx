@@ -1,7 +1,5 @@
 import { db } from "@/lib/db";
 import { requireTeacher } from "@/lib/auth/guards";
-import { listReflectionAudioFields } from "@/lib/authoring/audio-fields";
-import { AudioFieldRow } from "../AudioFieldRow";
 import { ApproveReflectionButton } from "./ApproveReflectionButton";
 import { NewReflectionForm } from "./NewReflectionForm";
 import type { ReflectionChoice } from "@/lib/learning/pick-reflection";
@@ -21,11 +19,6 @@ export default async function ReflectionsPage() {
       <div className="flex flex-col gap-3">
         {templates.map((t) => {
           const choices = t.choices as ReflectionChoice[];
-          const fields = listReflectionAudioFields({
-            question: t.question,
-            questionAudioUrl: t.questionAudioUrl,
-            choices,
-          });
           return (
             <section key={t.id} className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center justify-between">
@@ -56,13 +49,6 @@ export default async function ReflectionsPage() {
                   </li>
                 ))}
               </ul>
-              {t.status === "approved" && (
-                <div className="mt-3 border-t border-border pt-2">
-                  {fields.map((f) => (
-                    <AudioFieldRow key={f.key} kind="reflection" id={t.id} fieldKey={f.key} text={f.text} audioUrl={f.audioUrl} />
-                  ))}
-                </div>
-              )}
             </section>
           );
         })}

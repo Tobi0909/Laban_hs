@@ -6,15 +6,7 @@ import { db } from "@/lib/db";
 import { classes, reflectionTemplates, tasks, topics } from "@/lib/db/schema";
 import { requireTeacher } from "@/lib/auth/guards";
 import { deriveTask, type TaskFormInput } from "@/lib/authoring/derive-task";
-import {
-  applyReflectionAudioUrl,
-  applyTaskAudioUrl,
-  listReflectionAudioFields,
-  listTaskAudioFields,
-  type TaskForAudio,
-} from "@/lib/authoring/audio-fields";
-import { synthesizeAndUpload } from "@/lib/tts";
-import type { Explanation, StepExplanationItem, TaskContent, WorkedExample } from "@/lib/learning/types";
+import type { Explanation, StepExplanationItem, WorkedExample } from "@/lib/learning/types";
 import type { ReflectionChoice } from "@/lib/learning/pick-reflection";
 import type { Calibration } from "@/lib/learning/grade";
 
@@ -100,47 +92,6 @@ export async function updateTask(taskId: string, input: TaskInput) {
   revalidatePath(`/teacher/bank/${taskId}`);
 }
 
-async function generateAllTaskAudio(taskId: string) {
-  const task = await db.query.tasks.findFirst({ where: eq(tasks.id, taskId) });
-  if (!task) return;
-
-  const taskForAudio: TaskForAudio = {
-    prompt: task.prompt,
-    content: task.options as TaskContent,
-    workedExample: task.workedExample as WorkedExample,
-    explanation: task.explanation as Explanation,
-  };
-  const fields = listTaskAudioFields(taskForAudio);
-
-  const results = await Promise.allSettled(
-    fields.map((f) => synthesizeAndUpload(f.text, `task-${taskId}-${f.key}`).then((url) => ({ key: f.key, url }))),
-  );
-
-  let current = taskForAudio;
-  const updates: Record<string, unknown> = {};
-  for (const result of results) {
-    if (result.status !== "fulfilled") continue;
-    const patch = applyTaskAudioUrl(current, result.value.key, result.value.url);
-    if (patch.promptAudioUrl) updates.promptAudioUrl = patch.promptAudioUrl;
-    if (patch.options) {
-      updates.options = patch.options;
-      current = { ...current, content: patch.options };
-    }
-    if (patch.workedExample) {
-      updates.workedExample = patch.workedExample;
-      current = { ...current, workedExample: patch.workedExample };
-    }
-    if (patch.explanation) {
-      updates.explanation = patch.explanation;
-      current = { ...current, explanation: patch.explanation };
-    }
-  }
-
-  if (Object.keys(updates).length > 0) {
-    await db.update(tasks).set(updates).where(eq(tasks.id, taskId));
-  }
-}
-
 export async function approveTask(taskId: string) {
   const { teacherId } = await requireTeacher();
   await assertTaskOwnedByTeacher(taskId, teacherId);
@@ -149,8 +100,6 @@ export async function approveTask(taskId: string) {
     .update(tasks)
     .set({ status: "approved", approvedBy: teacherId, approvedAt: new Date() })
     .where(eq(tasks.id, taskId));
-
-  await generateAllTaskAudio(taskId);
 
   revalidatePath("/teacher/bank");
   revalidatePath(`/teacher/bank/${taskId}`);
@@ -203,32 +152,6 @@ export async function approveReflectionTemplate(id: string) {
     .update(reflectionTemplates)
     .set({ status: "approved", approvedBy: teacherId, approvedAt: new Date() })
     .where(eq(reflectionTemplates.id, id));
-
-  const template = await db.query.reflectionTemplates.findFirst({ where: eq(reflectionTemplates.id, id) });
-  if (template) {
-    const templateForAudio = { question: template.question, choices: template.choices as ReflectionChoice[] };
-    const fields = listReflectionAudioFields(templateForAudio);
-    const results = await Promise.allSettled(
-      fields.map((f) =>
-        synthesizeAndUpload(f.text, `reflection-${id}-${f.key}`).then((url) => ({ key: f.key, url })),
-      ),
-    );
-
-    let current = templateForAudio;
-    const updates: Record<string, unknown> = {};
-    for (const result of results) {
-      if (result.status !== "fulfilled") continue;
-      const patch = applyReflectionAudioUrl(current, result.value.key, result.value.url);
-      if (patch.questionAudioUrl) updates.questionAudioUrl = patch.questionAudioUrl;
-      if (patch.choices) {
-        updates.choices = patch.choices;
-        current = { ...current, choices: patch.choices };
-      }
-    }
-    if (Object.keys(updates).length > 0) {
-      await db.update(reflectionTemplates).set(updates).where(eq(reflectionTemplates.id, id));
-    }
-  }
 
   revalidatePath("/teacher/bank/reflections");
 }

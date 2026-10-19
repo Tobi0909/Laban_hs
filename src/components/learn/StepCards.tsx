@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ICONS } from "@/components/kid/icons";
 import type { StepCard } from "@/lib/learning/types";
-import { AudioButton } from "@/components/kid/AudioButton";
 import { vi } from "@/lib/i18n/vi";
 import { clsx } from "@/lib/clsx";
 
@@ -35,36 +34,29 @@ export function StepCards({ steps, onSubmit, disabled }: StepCardsProps) {
           const position = order.indexOf(step.id);
           const picked = position !== -1;
           return (
-            <div key={step.id} className="relative">
-              <button
-                type="button"
-                disabled={disabled}
-                onClick={() => toggle(step.id)}
+            <button
+              key={step.id}
+              type="button"
+              disabled={disabled}
+              onClick={() => toggle(step.id)}
+              className={clsx(
+                "flex w-full items-center gap-3 rounded-[20px] border-b-[6px] bg-card py-3 px-3 text-left transition-transform active:translate-y-1 active:border-b-[2px] disabled:opacity-60",
+                picked ? "border-sun ring-4 ring-sun" : "border-border",
+              )}
+            >
+              <span
                 className={clsx(
-                  "flex w-full items-center gap-3 rounded-[20px] border-b-[6px] bg-card py-3 pl-3 pr-12 text-left transition-transform active:translate-y-1 active:border-b-[2px] disabled:opacity-60",
-                  picked ? "border-sun ring-4 ring-sun" : "border-border",
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-baloo font-bold",
+                  picked ? "bg-sun text-ink" : "bg-border text-ink/50",
                 )}
               >
-                <span
-                  className={clsx(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-baloo font-bold",
-                    picked ? "bg-sun text-ink" : "bg-border text-ink/50",
-                  )}
-                >
-                  {picked ? position + 1 : "?"}
-                </span>
-                <div className="h-8 w-8 shrink-0">
-                  <Icon />
-                </div>
-                <span className="font-nunito text-lg">{step.text}</span>
-              </button>
-              <AudioButton
-                text={step.text}
-                audioUrl={step.audioUrl}
-                size="sm"
-                className="absolute -right-2 -top-2"
-              />
-            </div>
+                {picked ? position + 1 : "?"}
+              </span>
+              <div className="h-8 w-8 shrink-0">
+                <Icon />
+              </div>
+              <span className="font-nunito text-lg">{step.text}</span>
+            </button>
           );
         })}
       </div>
