@@ -90,4 +90,61 @@ D. 15
     expect(questions).toHaveLength(1);
     expect(questions[0].prompt).toBe("9 cộng 4 bằng mấy?");
   });
+
+  it("ghép đáp án từ bảng ĐÁP ÁN VÀ GIẢI THÍCH cuối file (định dạng ngân hàng câu hỏi Word)", () => {
+    // Mô phỏng text do mammoth.extractRawText() trả về: mỗi ô bảng là 1
+    // đoạn riêng nên có dòng trống xen giữa, số câu lặp lại (1, 2...) ở
+    // mỗi "Chủ đề".
+    const text = `Chủ đề 1. Ôn tập các số
+
+Câu 1. Số gồm 4 trăm, 2 chục và 5 đơn vị là:
+
+A. 425
+
+B. 452
+
+Chủ đề 2. Phép cộng
+
+Câu 1. 2 cộng 2 bằng mấy?
+
+A. 3
+
+B. 4
+
+ĐÁP ÁN VÀ GIẢI THÍCH
+
+Chủ đề 1. Ôn tập các số
+
+Câu
+
+Đáp án
+
+Giải thích ngắn
+
+1
+
+A
+
+4 trăm = 400, 2 chục = 20, 5 đơn vị = 5; số đó là 425.
+
+Chủ đề 2. Phép cộng
+
+Câu
+
+Đáp án
+
+Giải thích ngắn
+
+1
+
+B
+
+2 + 2 = 4.`;
+
+    const { questions, warnings } = parseExamText(text);
+    expect(warnings).toEqual([]);
+    expect(questions).toHaveLength(2);
+    expect(questions[0].formInput).toMatchObject({ type: "pick_image", correctOptionId: "opt-0-A" });
+    expect(questions[1].formInput).toMatchObject({ type: "pick_image", correctOptionId: "opt-1-B" });
+  });
 });

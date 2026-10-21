@@ -6,6 +6,13 @@ export const MAX_EXAM_QUESTIONS = 100;
 const QUESTION_RE = /^(?:câu|bài|question)\s*(\d+)\s*[:.)]?\s*(.*)$/i;
 const OPTION_RE = /^([a-dA-D])\s*[.):]\s*(.+)$/;
 const ANSWER_RE = /^(?:đáp\s*án|dap\s*an|answer)\s*[:.)]?\s*(.+)$/i;
+// Không dùng \b sau "đề": \b trong JS chỉ coi [A-Za-z0-9_] là word-char nên
+// không nhận ra ranh giới sau ký tự có dấu tiếng Việt, khiến regex không
+// bao giờ khớp.
+const TOPIC_HEADER_RE = /^chủ\s*đề\s*\d/i;
+const ANSWER_SECTION_MARKER_RE = /^đáp\s*án\s+và\s+giải\s+thích$/i;
+const TABLE_NUMBER_RE = /^(\d+)\.?$/;
+const TABLE_LETTER_RE = /^([a-dA-D])\.?$/;
 
 interface RawQuestion {
   number: number;
@@ -33,12 +40,19 @@ export interface ParseExamResult {
  *   ...
  *   Đáp án: B
  * (hoặc không có lựa chọn A-D ⇒ câu tự luận, "Đáp án" là 1 số)
- * Không dùng AI — chỉ nhận dạng theo mẫu câu cố định này, phần nào
- * không khớp sẽ bị bỏ qua và báo lại trong `warnings` để giáo viên tự bổ
- * sung bằng tay.
+ *
+ * Một số ngân hàng câu hỏi (vd. xuất từ Word) tách riêng phần "Câu hỏi" và
+ * phần "ĐÁP ÁN VÀ GIẢI THÍCH" ở cuối file dưới dạng bảng theo từng chủ đề,
+ * thay vì ghi "Đáp án" ngay dưới mỗi câu — `mergeAnswerKeyTable` nhận diện
+ * mẫu này và chèn lại dòng "Đáp án" vào đúng câu trước khi parse.
+ *
+ * Không dùng AI — chỉ nhận dạng theo mẫu cố định, phần nào không khớp sẽ
+ * bị bỏ qua và báo lại trong `warnings` để giáo viên tự bổ sung bằng tay.
  */
 export function parseExamText(text: string): ParseExamResult {
-  const lines = text.split(/\r?\n/).map((l) => l.trim());
+  const lines = mergeAnswerKeyTable(text)
+    .split(/\r?\n/)
+    .map((l) => l.trim());
   const raws: RawQuestion[] = [];
   let current: RawQuestion | null = null;
 
@@ -154,4 +168,82 @@ function buildNumberInput(answerRaw: string): TaskFormInput | null {
     correctValue,
     distractors: [],
   };
+}
+
+/**
+ * Nếu file có phần "ĐÁP ÁN VÀ GIẢI THÍCH" riêng ở cuối (bảng Câu/Đáp
+ * án/Giải thích theo từng "Chủ đề N."), chèn lại dòng "Đáp án: X" vào
+ * ngay sau câu hỏi tương ứng ở phần đề bài. Khớp câu hỏi với đáp án theo
+ * cặp (thứ tự chủ đề, số câu trong chủ đề đó) vì số câu thường lặp lại
+ * (1, 2, 3...) ở mỗi chủ đề. Không tìm thấy mốc "ĐÁP ÁN VÀ GIẢI THÍCH" thì
+ * trả nguyên văn bản gốc.
+ */
+function mergeAnswerKeyTable(text: string): string {
+  const lines = text.split(/\r?\n/);
+  const markerIdx = lines.findIndex((l) => ANSWER_SECTION_MARKER_RE.test(l.trim()));
+  if (markerIdx === -1) return text;
+
+  const questionLines = lines.slice(0, markerIdx);
+  const answerLines = lines.slice(markerIdx + 1);
+
+  const answerMap = buildAnswerKeyMap(answerLines);
+  if (answerMap.size === 0) return text;
+
+  return injectAnswerLines(questionLines, answerMap).join("\n");
+}
+
+function buildAnswerKeyMap(rawLines: string[]): Map<string, string> {
+  // Mammoth chèn 1 dòng trống giữa mỗi ô bảng (mỗi ô là 1 đoạn riêng) nên
+  // phải bỏ dòng trống trước khi ghép cặp "số câu" + "chữ cái đáp án".
+  const lines = rawLines.map((l) => l.trim()).filter(Boolean);
+  const map = new Map<string, string>();
+  let topicIndex = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (TOPIC_HEADER_RE.test(line)) {
+      topicIndex++;
+      continue;
+    }
+
+    const numberMatch = line.match(TABLE_NUMBER_RE);
+    const letterMatch = lines[i + 1]?.match(TABLE_LETTER_RE);
+    if (numberMatch && letterMatch) {
+      map.set(`${topicIndex}:${numberMatch[1]}`, letterMatch[1].toUpperCase());
+      i++; // bỏ qua dòng chữ cái đã dùng, phần giải thích theo sau sẽ tự bị bỏ qua ở vòng lặp tiếp
+    }
+  }
+
+  return map;
+}
+
+function injectAnswerLines(lines: string[], answerMap: Map<string, string>): string[] {
+  const output: string[] = [];
+  let topicIndex = 0;
+  let pendingAnswer: string | null = null;
+
+  const flush = () => {
+    if (pendingAnswer) output.push(`Đáp án: ${pendingAnswer}`);
+    pendingAnswer = null;
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (TOPIC_HEADER_RE.test(line)) {
+      flush();
+      topicIndex++;
+      output.push(rawLine);
+      continue;
+    }
+
+    const qMatch = line.match(QUESTION_RE);
+    if (qMatch) {
+      flush();
+      pendingAnswer = answerMap.get(`${topicIndex}:${qMatch[1]}`) ?? null;
+    }
+    output.push(rawLine);
+  }
+  flush();
+
+  return output;
 }
