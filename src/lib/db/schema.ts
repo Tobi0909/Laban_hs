@@ -137,7 +137,7 @@ export const sessions = pgTable("sessions", {
   classSessionId: uuid("class_session_id")
     .notNull()
     .references(() => classSessions.id, { onDelete: "cascade" }),
-  topicId: uuid("topic_id").references(() => topics.id),
+  topicId: uuid("topic_id").references(() => topics.id, { onDelete: "set null" }),
   startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
   endedAt: timestamp("ended_at", { withTimezone: true }),
 });

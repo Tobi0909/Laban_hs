@@ -5,7 +5,7 @@ import { and, eq, inArray, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { attempts, classes, classSessions, students, tasks, topics } from "@/lib/db/schema";
-import { requireTeacher } from "@/lib/auth/guards";
+import { requireTeacher, AuthError } from "@/lib/auth/guards";
 import { hashPictureSecret, hashQrToken, generateQrToken } from "@/lib/auth/picture-secret";
 import { AVATAR_IDS, ICON_IDS, type AvatarId, type IconId } from "@/components/kid/icons";
 
@@ -158,20 +158,25 @@ export async function deleteStudentData(classId: string, studentId: string) {
 export async function deleteClass(classId: string) {
   await requireTeacher(classId);
 
-  await db.transaction(async (tx) => {
-    const classTopics = await tx.query.topics.findMany({ where: eq(topics.classId, classId) });
-    const topicIds = classTopics.map((t) => t.id);
+  try {
+    await db.transaction(async (tx) => {
+      const classTopics = await tx.query.topics.findMany({ where: eq(topics.classId, classId) });
+      const topicIds = classTopics.map((t) => t.id);
 
-    if (topicIds.length > 0) {
-      const classTasks = await tx.query.tasks.findMany({ where: inArray(tasks.topicId, topicIds) });
-      const taskIds = classTasks.map((t) => t.id);
-      if (taskIds.length > 0) {
-        await tx.delete(attempts).where(inArray(attempts.taskId, taskIds));
+      if (topicIds.length > 0) {
+        const classTasks = await tx.query.tasks.findMany({ where: inArray(tasks.topicId, topicIds) });
+        const taskIds = classTasks.map((t) => t.id);
+        if (taskIds.length > 0) {
+          await tx.delete(attempts).where(inArray(attempts.taskId, taskIds));
+        }
       }
-    }
 
-    await tx.delete(classes).where(eq(classes.id, classId));
-  });
+      await tx.delete(classes).where(eq(classes.id, classId));
+    });
+  } catch (e) {
+    if (e instanceof AuthError) throw e;
+    throw new Error("Xoá lớp thất bại. Vui lòng thử lại.");
+  }
 
   revalidatePath("/teacher");
 }
