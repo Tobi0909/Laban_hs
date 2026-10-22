@@ -13,7 +13,11 @@ export const authConfig = {
   // tránh lỗi "UntrustedHost" tuỳ theo cách mỗi runtime (Node/Edge) tự
   // suy luận biến môi trường VERCEL.
   trustHost: true,
-  session: { strategy: "jwt" },
+  // Mặc định Auth.js hết phiên sau 30 ngày — tăng lên 90 ngày vì giáo viên/
+  // học sinh thường dùng chung 1 thiết bị lâu dài, không muốn đăng nhập lại
+  // thường xuyên.
+  session: { strategy: "jwt", maxAge: 90 * 24 * 60 * 60 },
+  jwt: { maxAge: 90 * 24 * 60 * 60 },
   providers: [],
   callbacks: {
     async jwt({ token, user, account }) {

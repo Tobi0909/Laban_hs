@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Kim } from "@/components/kid/Kim";
 import { Card } from "@/components/kid/Card";
 import { Cloud } from "@/components/kid/icons";
@@ -8,7 +9,8 @@ import type { Confidence } from "@/lib/learning/grade";
 import type { AnswerValue } from "@/lib/learning/types";
 import type { PublicTask } from "@/lib/learning/public-task";
 import { enqueuePendingAttempt } from "@/lib/offline/queue";
-import { trySyncQueue } from "@/lib/offline/sync-manager";
+import { trySyncQueue, SessionExpiredError } from "@/lib/offline/sync-manager";
+import { STUDENT_AUTH_ERROR_MESSAGE } from "@/lib/auth/messages";
 import { vi } from "@/lib/i18n/vi";
 import { ConfidenceScreen } from "./ConfidenceScreen";
 import { TaskScreen } from "./TaskScreen";
@@ -21,7 +23,7 @@ const MAX_TASKS = 5;
 const MAX_SESSION_MS = 15 * 60 * 1000;
 const SYNC_POLL_MS = 3000;
 
-type Phase = "confidence" | "task" | "offline" | "reflection" | "nextstep";
+type Phase = "confidence" | "task" | "offline" | "session-expired" | "reflection" | "nextstep";
 type Status = "loading" | "closed" | "ready" | "finished";
 
 interface SessionPackResponse {
@@ -30,7 +32,7 @@ interface SessionPackResponse {
   tasks: PublicTask[];
 }
 
-export function LearnFlow({ topicId }: { topicId: string }) {
+export function LearnFlow({ topicId, joinCode }: { topicId: string; joinCode: string }) {
   const [status, setStatus] = useState<Status>("loading");
   const [tasks, setTasks] = useState<PublicTask[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -93,11 +95,17 @@ export function LearnFlow({ topicId }: { topicId: string }) {
       setResult(res);
       setSubmitting(false);
       setPhase("reflection");
-    } catch {
+    } catch (e) {
+      setSubmitting(false);
+      if (e instanceof Error && e.message === STUDENT_AUTH_ERROR_MESSAGE) {
+        // Phiên đăng nhập hết/không hợp lệ — khác mất mạng, thử lại không
+        // bao giờ tự khỏi nên báo ngay để em đăng nhập lại.
+        setPhase("session-expired");
+        return;
+      }
       // Mất mạng giữa phiên: lưu tạm vào IndexedDB, không mất bài — thử gửi
       // lại định kỳ tới khi có mạng, không báo lỗi làm trẻ hoảng.
       await enqueuePendingAttempt(input);
-      setSubmitting(false);
       setPhase("offline");
       pollForSync(clientId);
     }
@@ -113,7 +121,11 @@ export function LearnFlow({ topicId }: { topicId: string }) {
           setPhase("reflection");
           return;
         }
-      } catch {
+      } catch (e) {
+        if (e instanceof SessionExpiredError) {
+          setPhase("session-expired");
+          return;
+        }
         // chưa có mạng — thử lại ở lần poll kế tiếp
       }
       pollTimer.current = setTimeout(attempt, SYNC_POLL_MS);
@@ -215,6 +227,22 @@ export function LearnFlow({ topicId }: { topicId: string }) {
           <p className="font-nunito text-lg">{vi.offline.waitingBody}</p>
         </Card>
       </>
+    );
+  }
+
+  if (phase === "session-expired") {
+    return (
+      <Card className="flex max-w-md flex-col items-center gap-4 text-center">
+        <Kim mood="help" size="lg" />
+        <p className="font-baloo text-xl font-semibold text-sky-deep">{vi.offline.sessionExpiredTitle}</p>
+        <p className="font-nunito text-lg">{vi.offline.sessionExpiredBody}</p>
+        <Link
+          href={`/c/${joinCode}`}
+          className="rounded-[20px] border-b-[6px] border-sky-deep bg-sky px-6 py-3 font-baloo text-lg font-semibold text-ink transition-transform active:translate-y-1 active:border-b-[2px]"
+        >
+          {vi.offline.loginAgain}
+        </Link>
+      </Card>
     );
   }
 

@@ -3,13 +3,14 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { classes } from "@/lib/db/schema";
+import { STUDENT_AUTH_ERROR_MESSAGE } from "@/lib/auth/messages";
 
 export class AuthError extends Error {}
 
 export async function requireStudent() {
   const session = await auth();
   if (session?.user.role !== "student" || !session.user.studentId || !session.user.classId) {
-    throw new AuthError("Cần đăng nhập học sinh.");
+    throw new AuthError(STUDENT_AUTH_ERROR_MESSAGE);
   }
   return {
     studentId: session.user.studentId,

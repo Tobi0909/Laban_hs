@@ -83,6 +83,9 @@ export const vi = {
     waitingTitle: "Kim đang giữ bài của em",
     waitingBody: "Mạng hơi yếu một chút, Kim sẽ gửi bài ngay khi có mạng lại nhé.",
     retry: "Thử lại ngay",
+    sessionExpiredTitle: "Em cần đăng nhập lại",
+    sessionExpiredBody: "Phiên học của em đã hết, bấm vào đây để vào lại lớp nhé.",
+    loginAgain: "Vào lại lớp",
   },
   teacher: {
     passwordLabel: "Mật khẩu",
