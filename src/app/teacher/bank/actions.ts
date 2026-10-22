@@ -29,7 +29,11 @@ async function assertTaskOwnedByTeacher(taskId: string, teacherId: string) {
 
 export async function createTopic(classId: string, title: string) {
   await requireTeacher(classId);
-  const [created] = await db.insert(topics).values({ classId, title, order: 0 }).returning();
+
+  const existingTopics = await db.query.topics.findMany({ where: eq(topics.classId, classId) });
+  const order = existingTopics.reduce((max, t) => Math.max(max, t.order), -1) + 1;
+
+  const [created] = await db.insert(topics).values({ classId, title, order }).returning();
   revalidatePath("/teacher/bank");
   return created;
 }

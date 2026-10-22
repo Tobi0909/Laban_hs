@@ -1,9 +1,9 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
 import { db } from "@/lib/db";
-import { classes, topics } from "@/lib/db/schema";
+import { classes, tasks, topics } from "@/lib/db/schema";
 import { isClassSessionOpen } from "@/lib/auth/class-session";
 import { Kim } from "@/components/kid/Kim";
 import { Card } from "@/components/kid/Card";
@@ -27,10 +27,22 @@ export default async function StudentHomePage() {
 
   const Avatar = AVATARS[(session.user.avatarId ?? "cat") as keyof typeof AVATARS];
 
-  const firstTopic = await db.query.topics.findFirst({
+  const classTopics = await db.query.topics.findMany({
     where: eq(topics.classId, classRow.id),
     orderBy: asc(topics.order),
   });
+  // Bỏ qua chủ đề chưa có bài đã duyệt (vd mới tạo, chưa soạn xong) để học
+  // sinh không bị đưa vào trang trống.
+  let firstTopic = classTopics[0];
+  for (const t of classTopics) {
+    const approvedTask = await db.query.tasks.findFirst({
+      where: and(eq(tasks.topicId, t.id), eq(tasks.status, "approved")),
+    });
+    if (approvedTask) {
+      firstTopic = t;
+      break;
+    }
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-paper px-4 py-10">
