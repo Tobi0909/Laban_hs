@@ -154,25 +154,27 @@ export async function deleteStudentData(classId: string, studentId: string) {
  * chủ đề, bài, lượt làm bài...). `attempts.taskId` không có cascade ở DB
  * nên phải xoá attempts của các task thuộc lớp trước, phần còn lại cascade
  * tự động theo schema.
+ *
+ * Driver `neon-http` không hỗ trợ transaction nên các bước chạy tuần tự
+ * (không atomic); nếu bước xoá attempts thành công nhưng bước xoá lớp lỗi,
+ * chạy lại thao tác xoá lớp sẽ tự khắc phục vì không còn attempts chặn nữa.
  */
 export async function deleteClass(classId: string) {
   await requireTeacher(classId);
 
   try {
-    await db.transaction(async (tx) => {
-      const classTopics = await tx.query.topics.findMany({ where: eq(topics.classId, classId) });
-      const topicIds = classTopics.map((t) => t.id);
+    const classTopics = await db.query.topics.findMany({ where: eq(topics.classId, classId) });
+    const topicIds = classTopics.map((t) => t.id);
 
-      if (topicIds.length > 0) {
-        const classTasks = await tx.query.tasks.findMany({ where: inArray(tasks.topicId, topicIds) });
-        const taskIds = classTasks.map((t) => t.id);
-        if (taskIds.length > 0) {
-          await tx.delete(attempts).where(inArray(attempts.taskId, taskIds));
-        }
+    if (topicIds.length > 0) {
+      const classTasks = await db.query.tasks.findMany({ where: inArray(tasks.topicId, topicIds) });
+      const taskIds = classTasks.map((t) => t.id);
+      if (taskIds.length > 0) {
+        await db.delete(attempts).where(inArray(attempts.taskId, taskIds));
       }
+    }
 
-      await tx.delete(classes).where(eq(classes.id, classId));
-    });
+    await db.delete(classes).where(eq(classes.id, classId));
   } catch (e) {
     if (e instanceof AuthError) throw e;
     console.error("deleteClass failed", classId, e);
