@@ -175,6 +175,7 @@ export async function deleteClass(classId: string) {
     });
   } catch (e) {
     if (e instanceof AuthError) throw e;
+    console.error("deleteClass failed", classId, e);
     throw new Error("Xoá lớp thất bại. Vui lòng thử lại.");
   }
 
