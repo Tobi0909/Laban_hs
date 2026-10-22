@@ -76,6 +76,32 @@ export async function addStudent(classId: string, formData: FormData): Promise<A
   return { studentId: created.id };
 }
 
+/**
+ * Đặt lại 2 hình bí mật cho học sinh đã có, dùng khi giáo viên quên tổ hợp
+ * cũ — tránh phải xoá và tạo lại học sinh (mất lịch sử làm bài).
+ */
+export async function resetStudentPictureSecret(classId: string, studentId: string, formData: FormData) {
+  await requireTeacher(classId);
+
+  const student = await db.query.students.findFirst({ where: eq(students.id, studentId) });
+  if (!student || student.classId !== classId) {
+    throw new Error("Không tìm thấy học sinh trong lớp này.");
+  }
+
+  const pick1 = String(formData.get("pick1") ?? "") as IconId;
+  const pick2 = String(formData.get("pick2") ?? "") as IconId;
+  if (!ICON_IDS.includes(pick1) || !ICON_IDS.includes(pick2) || pick1 === pick2) {
+    throw new Error("Cần chọn 2 hình bí mật khác nhau.");
+  }
+
+  await db
+    .update(students)
+    .set({ pictureSecretHash: hashPictureSecret(studentId, [pick1, pick2]) })
+    .where(eq(students.id, studentId));
+
+  revalidatePath(`/teacher/classes/${classId}`);
+}
+
 export interface PrintCard {
   studentId: string;
   displayName: string;

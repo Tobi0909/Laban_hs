@@ -8,6 +8,7 @@ import { isClassSessionOpen } from "@/lib/auth/class-session";
 import { SessionToggle } from "../../SessionToggle";
 import { AddStudentForm } from "./AddStudentForm";
 import { DeleteStudentButton } from "./DeleteStudentButton";
+import { ResetSecretButton } from "./ResetSecretButton";
 import { AVATARS } from "@/components/kid/icons";
 
 export default async function ClassManagePage({
@@ -59,9 +60,10 @@ export default async function ClassManagePage({
           {classStudents.map((s) => {
             const Avatar = AVATARS[s.avatarId as keyof typeof AVATARS];
             return (
-              <li key={s.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+              <li key={s.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
                 <div className="h-10 w-10">{Avatar ? <Avatar /> : null}</div>
                 <span className="flex-1 font-medium">{s.displayName}</span>
+                <ResetSecretButton classId={classId} studentId={s.id} displayName={s.displayName} />
                 <DeleteStudentButton classId={classId} studentId={s.id} displayName={s.displayName} />
               </li>
             );
