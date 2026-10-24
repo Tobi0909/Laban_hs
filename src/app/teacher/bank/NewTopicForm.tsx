@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { createTopic } from "./actions";
 
 export function NewTopicForm({ classes }: { classes: { id: string; name: string }[] }) {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [classId, setClassId] = useState(classes[0]?.id ?? "");
   const [pending, startTransition] = useTransition();
@@ -16,6 +18,7 @@ export function NewTopicForm({ classes }: { classes: { id: string; name: string 
         startTransition(async () => {
           await createTopic(classId, title);
           setTitle("");
+          router.refresh();
         });
       }}
       className="flex items-end gap-3 rounded-xl border border-border bg-card p-4"
