@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { requireTeacher } from "@/lib/auth/guards";
 import { ApproveReflectionButton } from "./ApproveReflectionButton";
+import { DeleteReflectionButton } from "./DeleteReflectionButton";
 import { NewReflectionForm } from "./NewReflectionForm";
 import type { ReflectionChoice } from "@/lib/learning/pick-reflection";
 import { MISTAKE_TAG_LABELS_VI, type MistakeTag } from "@/lib/learning/types";
@@ -39,7 +40,10 @@ export default async function ReflectionsPage() {
                     {t.status === "approved" ? "Đã duyệt" : "Nháp"}
                   </span>
                 </div>
-                {t.status !== "approved" && <ApproveReflectionButton id={t.id} />}
+                <div className="flex items-center gap-3">
+                  {t.status !== "approved" && <ApproveReflectionButton id={t.id} />}
+                  <DeleteReflectionButton id={t.id} />
+                </div>
               </div>
               <p className="mt-2 font-medium">{t.question}</p>
               <ul className="mt-1 flex flex-wrap gap-2 text-sm text-ink/70">

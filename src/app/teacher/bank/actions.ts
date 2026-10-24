@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { attempts, classes, reflectionTemplates, tasks, topics } from "@/lib/db/schema";
+import { attempts, classes, reflectionTemplates, reflections, tasks, topics } from "@/lib/db/schema";
 import { requireTeacher } from "@/lib/auth/guards";
 import { deriveTask, type TaskFormInput } from "@/lib/authoring/derive-task";
 import { parseImportFile } from "@/lib/authoring/parse-document";
@@ -193,6 +193,19 @@ export async function createReflectionTemplate(input: ReflectionTemplateInput) {
     .returning();
   revalidatePath("/teacher/bank/reflections");
   return created;
+}
+
+/**
+ * Xoá hẳn 1 câu phản tư (dù đã duyệt hay chưa). `reflections.templateId`
+ * không cascade ở DB nên phải xoá các câu trả lời đã dùng mẫu này trước.
+ */
+export async function deleteReflectionTemplate(id: string) {
+  await requireTeacher();
+
+  await db.delete(reflections).where(eq(reflections.templateId, id));
+  await db.delete(reflectionTemplates).where(eq(reflectionTemplates.id, id));
+
+  revalidatePath("/teacher/bank/reflections");
 }
 
 export async function updateReflectionTemplate(id: string, input: ReflectionTemplateInput) {
