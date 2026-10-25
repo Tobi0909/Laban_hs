@@ -2,7 +2,7 @@ import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { students as studentsTable } from "@/lib/db/schema";
+import { students as studentsTable, topics as topicsTable, tasks as tasksTable } from "@/lib/db/schema";
 import { requireTeacher } from "@/lib/auth/guards";
 import { isClassSessionOpen } from "@/lib/auth/class-session";
 import { SessionToggle } from "../../SessionToggle";
@@ -24,6 +24,17 @@ export default async function ClassManagePage({
 
   const classStudents = await db.query.students.findMany({ where: eq(studentsTable.classId, classId) });
   const sessionOpen = await isClassSessionOpen(classId);
+
+  const classTopics = await db.query.topics.findMany({
+    where: eq(topicsTable.classId, classId),
+    orderBy: (t, { asc }) => asc(t.order),
+  });
+  const topicsWithTaskCount = await Promise.all(
+    classTopics.map(async (topic) => {
+      const topicTasks = await db.query.tasks.findMany({ where: eq(tasksTable.topicId, topic.id) });
+      return { topic, taskCount: topicTasks.length };
+    }),
+  );
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-10">
@@ -74,6 +85,30 @@ export default async function ClassManagePage({
       <section>
         <h2 className="mb-3 text-lg font-semibold">Thêm học sinh</h2>
         <AddStudentForm classId={classId} />
+      </section>
+
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Chủ đề ({topicsWithTaskCount.length})</h2>
+          <Link href="/teacher/bank" className="text-sm text-sky-deep underline">
+            Quản lý chủ đề →
+          </Link>
+        </div>
+        {topicsWithTaskCount.length === 0 ? (
+          <p className="text-sm text-ink/60">Chưa có chủ đề nào — tạo chủ đề ở Ngân hàng bài.</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {topicsWithTaskCount.map(({ topic, taskCount }) => (
+              <li
+                key={topic.id}
+                className="flex items-center justify-between rounded-lg border border-border bg-card p-3"
+              >
+                <span className="font-medium">{topic.title}</span>
+                <span className="text-sm text-ink/50">{taskCount} bài</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
   );
