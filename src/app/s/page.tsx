@@ -33,14 +33,13 @@ export default async function StudentHomePage() {
   });
   // Bỏ qua chủ đề chưa có bài đã duyệt (vd mới tạo, chưa soạn xong) để học
   // sinh không bị đưa vào trang trống.
-  let firstTopic = classTopics[0];
+  const learnableTopics = [];
   for (const t of classTopics) {
     const approvedTask = await db.query.tasks.findFirst({
       where: and(eq(tasks.topicId, t.id), eq(tasks.status, "approved")),
     });
     if (approvedTask) {
-      firstTopic = t;
-      break;
+      learnableTopics.push(t);
     }
   }
 
@@ -52,13 +51,18 @@ export default async function StudentHomePage() {
         <p className="font-baloo text-2xl font-semibold text-sky-deep">
           {vi.classEntry.welcome} {session.user.name}!
         </p>
-        {firstTopic ? (
-          <Link
-            href={`/learn/${firstTopic.id}`}
-            className="rounded-[20px] border-b-[6px] border-sky-deep bg-sky px-6 py-3 font-baloo text-lg font-semibold text-ink transition-transform active:translate-y-1 active:border-b-[2px]"
-          >
-            Bắt đầu học: {firstTopic.title}
-          </Link>
+        {learnableTopics.length > 0 ? (
+          <div className="flex w-full flex-col gap-3">
+            {learnableTopics.map((t) => (
+              <Link
+                key={t.id}
+                href={`/learn/${t.id}`}
+                className="rounded-[20px] border-b-[6px] border-sky-deep bg-sky px-6 py-3 font-baloo text-lg font-semibold text-ink transition-transform active:translate-y-1 active:border-b-[2px]"
+              >
+                Bắt đầu học: {t.title}
+              </Link>
+            ))}
+          </div>
         ) : (
           <p className="font-nunito text-lg text-ink/70">Chưa có chủ đề nào, chờ cô/thầy thêm nhé.</p>
         )}
