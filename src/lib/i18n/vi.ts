@@ -69,6 +69,8 @@ export const vi = {
     submit: "Nộp bài",
     viewExample: "Xem lại ví dụ",
     viewHowTo: "Xem cách làm",
+    questionLabel: "Câu hỏi:",
+    answerLabel: "Đáp án:",
     suggestedBadge: "Kim gợi ý",
     continueLabel: "Tiếp tục",
     grading: "Kim đang xem bài của em...",

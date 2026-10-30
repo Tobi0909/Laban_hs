@@ -272,6 +272,8 @@ export function LearnFlow({ topicId, joinCode }: { topicId: string; joinCode: st
         reasonText={result.nextStepSuggestion.reasonText}
         workedExample={result.workedExample}
         explanation={result.explanation}
+        prompt={result.prompt}
+        answerText={result.answerText}
         onChoose={handleNextStepChoice}
       />
     );

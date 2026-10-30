@@ -126,6 +126,8 @@ export function LearnPreview() {
           reasonText="Em làm tốt lắm, thử bài khó hơn xem sao!"
           workedExample={{ steps: [{ text: "7 cộng 6 bằng 13, viết 3 nhớ 1 chục", iconId: "drop" }] }}
           explanation={{ steps: [{ text: "Nhớ 1 sang hàng chục", iconId: "star" }] }}
+          prompt="7 + 6 = ?"
+          answerText="13"
           onChoose={() => {}}
         />
       )}

@@ -100,7 +100,13 @@ export async function updateTask(taskId: string, input: TaskInput) {
 
 export async function approveTask(taskId: string) {
   const { teacherId } = await requireTeacher();
-  await assertTaskOwnedByTeacher(taskId, teacherId);
+  const task = await assertTaskOwnedByTeacher(taskId, teacherId);
+
+  const workedExample = task.workedExample as WorkedExample;
+  const explanation = task.explanation as Explanation;
+  if (workedExample.steps.length === 0 || explanation.steps.length === 0) {
+    throw new Error("Bài chưa có ví dụ minh hoạ hoặc giải thích, vui lòng điền trước khi duyệt.");
+  }
 
   await db
     .update(tasks)

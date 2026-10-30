@@ -21,12 +21,16 @@ export function NextStepScreen({
   reasonText,
   workedExample,
   explanation,
+  prompt,
+  answerText,
   onChoose,
 }: {
   suggested: NextStepChoice;
   reasonText: string;
   workedExample: WorkedExample;
   explanation: Explanation;
+  prompt: string;
+  answerText: string;
   onChoose: (chosen: NextStepChoice) => void;
 }) {
   const [expanded, setExpanded] = useState<"review_example" | "how_to" | null>(null);
@@ -40,17 +44,28 @@ export function NextStepScreen({
           {expanded === "review_example" ? vi.learn.viewExample : vi.learn.viewHowTo}
         </p>
         <Card className="flex w-full flex-col gap-3">
-          {steps.map((step, i) => {
-            const Icon = ICONS[step.iconId];
-            return (
-              <div key={i} className="flex items-center gap-3">
-                <div className="h-8 w-8 shrink-0">
-                  <Icon />
+          {steps.length > 0 ? (
+            steps.map((step, i) => {
+              const Icon = ICONS[step.iconId];
+              return (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="h-8 w-8 shrink-0">
+                    <Icon />
+                  </div>
+                  <p className="flex-1 font-nunito text-lg">{step.text}</p>
                 </div>
-                <p className="flex-1 font-nunito text-lg">{step.text}</p>
-              </div>
-            );
-          })}
+              );
+            })
+          ) : (
+            <div className="flex flex-col gap-2">
+              <p className="font-nunito text-lg">
+                <span className="font-semibold">{vi.learn.questionLabel}</span> {prompt}
+              </p>
+              <p className="font-nunito text-lg">
+                <span className="font-semibold">{vi.learn.answerLabel}</span> {answerText}
+              </p>
+            </div>
+          )}
         </Card>
         <button
           type="button"

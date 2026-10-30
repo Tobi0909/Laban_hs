@@ -5,7 +5,8 @@ import { attempts, reflectionTemplates as reflectionTemplatesTable, sessions, ta
 import { calibrate, gradeAnswer, type Confidence } from "./grade";
 import { pickReflectionTemplate, type ReflectionTemplateRow } from "./pick-reflection";
 import { suggestNextStep } from "./next-step";
-import type { AnswerValue, Explanation, MistakeTag, TaskAnswerKey, WorkedExample } from "./types";
+import { describeAnswer } from "./describe-answer";
+import type { AnswerValue, Explanation, MistakeTag, TaskAnswerKey, TaskContent, WorkedExample } from "./types";
 
 function hashSeed(input: string): number {
   let h = 0;
@@ -48,6 +49,8 @@ export interface SubmitAnswerResult {
   nextStepSuggestion: { suggested: NextStepChoice; reasonText: string };
   workedExample: WorkedExample;
   explanation: Explanation;
+  prompt: string;
+  answerText: string;
 }
 
 /**
@@ -119,5 +122,7 @@ export async function submitAnswerCore(studentId: string, input: SubmitAnswerInp
     nextStepSuggestion,
     workedExample: task.workedExample as WorkedExample,
     explanation: task.explanation as Explanation,
+    prompt: task.prompt,
+    answerText: describeAnswer(task.options as TaskContent, (task.answerKey as TaskAnswerKey).correct),
   };
 }
